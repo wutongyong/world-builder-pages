@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2087 // 全球企业领地分布图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#040812;--surface:#0a1020;--cyan:#00e5ff;--magenta:#ff2d78;
+  --green:#00ff88;--amber:#ffa600;--text:#b8c8d8;--text-bright:#e0ecf5;
+  --text-muted:#3a4a5a;--grid:rgba(0,229,255,.05);
+}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Noto Sans SC','Share Tech Mono',sans-serif;
+  position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 50% 45%,rgba(0,40,80,.25) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+.noise{position:fixed;inset:0;opacity:.035;pointer-events:none;z-index:100;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.013) 2px,rgba(0,229,255,.013) 4px);
+}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:98;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.65) 100%);
+}
+.scan-beam{position:fixed;left:0;right:0;height:2px;z-index:97;pointer-events:none;
+  background:linear-gradient(90deg,transparent 10%,rgba(0,229,255,.12) 50%,transparent 90%);
+  animation:scanDown 7s linear infinite;
+}
+.corner{position:fixed;width:36px;height:36px;z-index:51;pointer-events:none}
+.corner-tl{top:10px;left:10px;border-top:1px solid rgba(0,229,255,.25);border-left:1px solid rgba(0,229,255,.25)}
+.corner-tr{top:10px;right:10px;border-top:1px solid rgba(0,229,255,.25);border-right:1px solid rgba(0,229,255,.25)}
+.corner-bl{bottom:10px;left:10px;border-bottom:1px solid rgba(0,229,255,.25);border-left:1px solid rgba(0,229,255,.25)}
+.corner-br{bottom:10px;right:10px;border-bottom:1px solid rgba(0,229,255,.25);border-right:1px solid rgba(0,229,255,.25)}
+
+.hud{position:fixed;inset:0;pointer-events:none;z-index:50;padding:18px 24px;display:flex;flex-direction:column;justify-content:space-between}
+.hud-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.hud-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--cyan);text-shadow:0 0 12px rgba(0,229,255,.4);letter-spacing:2px;line-height:1.6}
+.hud-title .cn{font-family:'Noto Sans SC',sans-serif;font-weight:700;font-size:15px;letter-spacing:8px;display:block;margin-bottom:2px}
+.hud-meta{text-align:right;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-muted);line-height:2}
+.hud-meta .active{color:var(--green)}
+.hud-meta .warn{color:var(--amber);animation:blink 2.5s ease-in-out infinite}
+.hud-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+.hud-warn{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--magenta);opacity:.6;animation:blink 3.5s ease-in-out infinite;max-width:500px}
+.hud-sys{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:51;pointer-events:none;
+  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--cyan);opacity:.35;text-align:center;letter-spacing:1px;
+}
+.hud-stats{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-muted);text-align:right;line-height:2.2}
+.hud-coord{position:fixed;bottom:18px;right:24px;z-index:51;pointer-events:none;
+  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-muted);
+}
+
+.map-container{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:55px 30px;z-index:1}
+.map-svg{width:100%;height:100%;max-width:1500px;opacity:0;animation:mapFadeIn 1.5s .3s ease forwards}
+
+.grid-line{stroke:var(--grid);stroke-width:.4;fill:none}
+.grid-major{stroke:rgba(0,229,255,.07);stroke-width:.6;stroke-dasharray:4 8}
+.cont-fill{fill:rgba(0,229,255,.025);stroke:none}
+.cont-line{fill:none;stroke:rgba(0,229,255,.18);stroke-width:.8;stroke-linejoin:round;
+  stroke-dasharray:2000;stroke-dashoffset:2000;animation:drawLine 2.5s .8s ease forwards}
+.cont-glow{fill:none;stroke:rgba(0,229,255,.05);stroke-width:3;filter:url(#fGlow);
+  stroke-dasharray:2000;stroke-dashoffset:2000;animation:drawLine 2.5s 1s ease forwards}
+
+.city-marker{cursor:pointer;pointer-events:all;opacity:0;animation:popIn .6s 2.5s cubic-bezier(.34,1.56,.64,1) forwards}
+.city-marker:hover .ring-outer{stroke-width:1.8}
+.city-marker:hover .core{r:3.5}
+.pulse{animation:pulse 3s ease-in-out infinite}
+.pulse2{animation:pulse 3s ease-in-out 1s infinite}
+.ring-outer{transition:all .25s ease}
+.core{transition:r .25s ease}
+
+.conn{fill:none;stroke-width:.7;stroke-dasharray:5 5;opacity:0;animation:connIn .8s 3s ease forwards}
+.conn-dot{opacity:0;animation:connIn .5s 3.2s ease forwards}
+
+.city-labels{opacity:0;animation:fadeUp .8s 2.8s ease forwards}
+.cl-name{font-family:'Noto Sans SC',sans-serif;font-size:14px;font-weight:700;pointer-events:none}
+.cl-en{font-family:'Orbitron',monospace;font-size:9px;fill:var(--text-muted);letter-spacing:1.2px;pointer-events:none}
+.cl-pop{font-family:'Share Tech Mono',monospace;font-size:8px;fill:var(--text-muted);pointer-events:none}
+
+.zone-hatch{fill:url(#hatch);opacity:.06}
+.zone-label{font-family:'Share Tech Mono',monospace;font-size:5.5px;fill:rgba(255,45,120,.2);letter-spacing:1px;pointer-events:none}
+
+/* Corp sub-markers */
+.corp-marker{cursor:pointer;pointer-events:all;opacity:0;animation:popIn .5s ease forwards}
+.corp-marker:hover .corp-dia{opacity:1;filter:drop-shadow(0 0 4px currentColor)}
+.corp-marker:hover .corp-link{opacity:.45}
+.corp-dia{transition:all .2s ease}
+.corp-link{transition:opacity .2s ease}
+.corp-label{font-family:'Noto Sans SC',sans-serif;font-size:9px;font-weight:500;pointer-events:none}
+.corp-label-en{font-family:'Orbitron',monospace;font-size:6.5px;pointer-events:none;letter-spacing:.8px}
+.cross-city-link{fill:none;stroke-width:.6;stroke-dasharray:8 6;opacity:0;animation:connIn 1s 4s ease forwards}
+
+/* Legend */
+.legend{position:fixed;bottom:48px;left:24px;z-index:51;font-family:'Share Tech Mono',monospace;font-size:12px;
+  max-height:calc(100vh - 100px);overflow-y:auto;scrollbar-width:none}
+.legend::-webkit-scrollbar{display:none}
+.legend-t{color:var(--text-muted);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;margin-top:14px}
+.legend-t:first-child{margin-top:0}
+.legend-i{display:flex;align-items:center;gap:10px;margin-bottom:7px;color:var(--text-muted);cursor:pointer;transition:color .2s;pointer-events:all}
+.legend-i:hover{color:var(--text-bright)}
+.legend-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.legend-d.diamond{border-radius:1px;transform:rotate(45deg);width:6px;height:6px}
+
+/* Detail Panel */
+.detail{position:fixed;right:-520px;top:0;bottom:0;width:500px;z-index:60;
+  background:linear-gradient(160deg,rgba(8,14,28,.98),rgba(4,8,18,.99));
+  border-left:1px solid rgba(0,229,255,.12);backdrop-filter:blur(24px);
+  transition:right .55s cubic-bezier(.22,1,.36,1);overflow-y:auto;pointer-events:all;
+  scrollbar-width:thin;scrollbar-color:rgba(0,229,255,.15) transparent;
+}
+.detail::-webkit-scrollbar{width:4px}
+.detail::-webkit-scrollbar-track{background:transparent}
+.detail::-webkit-scrollbar-thumb{background:rgba(0,229,255,.15);border-radius:2px}
+.detail.open{right:0}
+.detail::before{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;
+  background:linear-gradient(to bottom,transparent,rgba(0,229,255,.4),transparent);
+}
+.d-close{position:absolute;top:18px;right:18px;width:30px;height:30px;background:none;
+  border:1px solid rgba(0,229,255,.2);color:var(--cyan);font-family:'Share Tech Mono',monospace;
+  font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;z-index:2}
+.d-close:hover{background:rgba(0,229,255,.08);border-color:var(--cyan)}
+.d-head{padding:28px 26px 18px;border-bottom:1px solid rgba(0,229,255,.06)}
+.d-name{font-family:'Noto Sans SC',sans-serif;font-size:26px;font-weight:700;margin-bottom:3px}
+.d-sub{font-family:'Orbitron',monospace;font-size:8px;color:var(--text-muted);letter-spacing:3px;text-transform:uppercase}
+.d-body{padding:22px 26px 40px}
+.d-sec{margin-bottom:22px;opacity:0;transform:translateY(10px);animation:fadeUp .4s ease forwards}
+.d-sec:nth-child(1){animation-delay:.1s}
+.d-sec:nth-child(2){animation-delay:.18s}
+.d-sec:nth-child(3){animation-delay:.26s}
+.d-sec:nth-child(4){animation-delay:.34s}
+.d-sec:nth-child(5){animation-delay:.42s}
+.d-sec:nth-child(6){animation-delay:.5s}
+.d-sec:nth-child(7){animation-delay:.58s}
+.d-sec:nth-child(8){animation-delay:.66s}
+.d-stitle{font-family:'Orbitron',monospace;font-size:8px;color:var(--cyan);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;
+  padding-bottom:5px;border-bottom:1px solid rgba(0,229,255,.08)}
+.d-field{display:flex;margin-bottom:8px;font-size:12px;line-height:1.7}
+.d-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-muted);
+  min-width:70px;padding-top:2px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
+.d-val{flex:1;color:var(--text);font-size:12.5px;line-height:1.8}
+.d-atmo{font-size:11.5px;line-height:2;color:rgba(180,200,210,.8);
+  padding:12px 14px;background:rgba(0,229,255,.02);border-left:2px solid rgba(0,229,255,.18)}
+.d-locs{list-style:none}
+.d-locs li{padding:8px 0;border-bottom:1px solid rgba(0,229,255,.03);font-size:11.5px;line-height:1.6}
+.d-locs .ln{font-weight:500;display:block}
+.d-locs .ld{color:var(--text-muted);font-size:10.5px}
+.d-rumor{padding:14px 14px;background:rgba(255,45,120,.03);border-left:2px solid rgba(255,45,120,.25);
+  font-size:11px;line-height:2;color:rgba(210,185,195,.85)}
+
+/* Corp cards inside city detail */
+.corp-card{padding:12px 14px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);
+  margin-bottom:8px;cursor:pointer;transition:all .25s ease;border-radius:2px}
+.corp-card:hover{background:rgba(255,255,255,.04);transform:translateX(3px)}
+.corp-card-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.corp-card-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.corp-card-name{font-family:'Noto Sans SC',sans-serif;font-size:12px;font-weight:700}
+.corp-card-en{font-family:'Orbitron',monospace;font-size:6.5px;color:var(--text-muted);letter-spacing:1px}
+.corp-card-desc{font-size:10px;color:var(--text-muted);line-height:1.7;margin-top:4px}
+
+/* Corp detail specific */
+.d-logo-box{padding:14px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);border-radius:2px;
+  font-size:11.5px;line-height:1.8;color:rgba(180,200,210,.7);font-style:italic}
+.d-slogan{font-size:13px;font-style:italic;padding:10px 14px;background:rgba(255,255,255,.02);
+  border-left:2px solid rgba(255,255,255,.1);color:rgba(200,220,230,.8)}
+.d-dept{padding:10px 0;border-bottom:1px solid rgba(0,229,255,.03)}
+.d-dept-name{font-weight:700;font-size:12px;display:block;margin-bottom:2px}
+.d-dept-duty{font-size:11px;color:var(--text-muted);line-height:1.7}
+.d-secret{padding:14px;background:rgba(255,45,120,.04);border:1px solid rgba(255,45,120,.08);
+  border-left:3px solid rgba(255,45,120,.3);font-size:11px;line-height:2;color:rgba(210,185,195,.8);border-radius:2px}
+.d-image{padding:12px 14px;background:rgba(0,229,255,.02);border-left:2px solid rgba(0,229,255,.15);
+  font-size:11.5px;line-height:2;color:rgba(180,200,210,.75)}
+
+@keyframes scanDown{0%{top:-2px}100%{top:100vh}}
+@keyframes pulse{0%,100%{opacity:.5;r:10}50%{opacity:0;r:22}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes drawLine{to{stroke-dashoffset:0}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{0%{opacity:0;transform:scale(0)}100%{opacity:1;transform:scale(1)}}
+@keyframes mapFadeIn{to{opacity:1}}
+@keyframes connIn{to{opacity:1}}
+@keyframes glitch{0%,100%{transform:translate(0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,-1px)}80%{transform:translate(1px,1px)}}
+
+@media(max-width:768px){
+  .hud{padding:10px 14px}
+  .hud-title .cn{font-size:12px;letter-spacing:4px}
+  .hud-title{font-size:9px}
+  .hud-meta,.hud-stats,.legend,.hud-coord{display:none}
+  .detail{width:100%;right:-100%}
+  .map-container{padding:48px 10px}
+}
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="scan-beam"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<div class="hud">
+  <div class="hud-top">
+    <div class="hud-title">
+      <span class="cn">全 球 企 业 领 地 分 布 图</span>
+      GLOBAL CORPORATE TERRITORY MAP // EST. 2087
+    </div>
+    <div class="hud-meta">
+      <div id="ts">2087.11.23 // 04:33:17 UTC+8</div>
+      <div>网络状态: <span class="active">■ 受限连接</span></div>
+      <div>访问等级: <span class="warn">C-7 // 需要验证</span></div>
+      <div>信号衰减: 67.3%</div>
+    </div>
+  </div>
+  <div class="hud-bottom">
+    <div class="hud-warn">⚠ 未经授权的领土扫描将触发企业安全协议 // UNAUTHORIZED TERRITORY SCANNING WILL TRIGGER CORPORATE SECURITY PROTOCOL</div>
+    <div class="hud-stats">
+      <div>已识别领地: 3 | 企业网络节点: 5</div>
+      <div>活跃节点: ████░░░░ 48%</div>
+      <div>数据完整性: ▓▓▓▓▓▓░░░░ 62%</div>
+    </div>
+  </div>
+</div>
+
+<div class="hud-sys" id="sysMsg">[ 系统 ] 正在扫描全球企业领地网络...</div>
+<div class="hud-coord" id="coordDisp">LAT --°--'--" / LON --°--'--"</div>
+
+<div class="legend" id="legendBox">
+  <div class="legend-t">// 企业领地 TERRITORIES</div>
+  <div class="legend-i" onclick="showDetail(0)"><div class="legend-d" style="background:var(--magenta);box-shadow:0 0 6px var(--magenta)"></div><span>新京 // 天网集团</span></div>
+  <div class="legend-i" onclick="showDetail(1)"><div class="legend-d" style="background:var(--green);box-shadow:0 0 6px var(--green)"></div><span>欧罗巴穹顶 // 欧米茄生物科技</span></div>
+  <div class="legend-i" onclick="showDetail(2)"><div class="legend-d" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></div><span>锈蚀湾 // 通用锻造</span></div>
+  <div class="legend-t">// 企业网络 CORPORATE NETWORK</div>
+  <div class="legend-i" onclick="showCorp(0)"><div class="legend-d diamond" style="background:#9b6dff;box-shadow:0 0 5px #9b6dff"></div><span>神经元联合体</span></div>
+  <div class="legend-i" onclick="showCorp(1)"><div class="legend-d diamond" style="background:#44ffdd;box-shadow:0 0 5px #44ffdd"></div><span>赛博坦梦境</span></div>
+  <div class="legend-i" onclick="showCorp(2)"><div class="legend-d diamond" style="background:#8899bb;box-shadow:0 0 5px #8899bb"></div><span>量子核心工业</span></div>
+  <div class="legend-i" onclick="showCorp(3)"><div class="legend-d diamond" style="background:#88cc33;box-shadow:0 0 5px #88cc33"></div><span>基因纪元</span></div>
+  <div class="legend-i" onclick="showCorp(4)"><div class="legend-d diamond" style="background:#ddaa22;box-shadow:0 0 5px #ddaa22"></div><span>数据圣堂</span></div>
+</div>
+
+<div class="map-container">
+<svg class="map-svg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" id="mapSvg">
+<defs>
+  <filter id="fGlow"><feGaussianBlur stdDeviation="2.5" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+  <filter id="fGlowM"><feGaussianBlur stdDeviation="3" result="b"/><feFlood flood-color="#ff2d78" flood-opacity=".55" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feComposite in="SourceGraphic" in2="g" operator="over"/></filter>
+  <filter id="fGlowG"><feGaussianBlur stdDeviation="3" result="b"/><feFlood flood-color="#00ff88" flood-opacity=".55" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feComposite in="SourceGraphic" in2="g" operator="over"/></filter>
+  <filter id="fGlowA"><feGaussianBlur stdDeviation="3" result="b"/><feFlood flood-color="#ffa600" flood-opacity=".55" result="c"/><feComposite in="c" in2="b" operator="in" result="g"/><feComposite in="SourceGraphic" in2="g" operator="over"/></filter>
+  <radialGradient id="gM" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff2d78" stop-opacity=".12"/><stop offset="100%" stop-color="#ff2d78" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gG" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#00ff88" stop-opacity=".12"/><stop offset="100%" stop-color="#00ff88" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffa600" stop-opacity=".12"/><stop offset="100%" stop-color="#ffa600" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gC0" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#9b6dff" stop-opacity=".1"/><stop offset="100%" stop-color="#9b6dff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gC1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#44ffdd" stop-opacity=".1"/><stop offset="100%" stop-color="#44ffdd" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gC2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#8899bb" stop-opacity=".1"/><stop offset="100%" stop-color="#8899bb" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gC3" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#88cc33" stop-opacity=".1"/><stop offset="100%" stop-color="#88cc33" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gC4" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ddaa22" stop-opacity=".1"/><stop offset="100%" stop-color="#ddaa22" stop-opacity="0"/></radialGradient>
+  <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,45,120,.35)" stroke-width="1"/></pattern>
+</defs>
+
+<!-- Grid -->
+<g class="grid">
+  <line x1="0" y1="83" x2="1000" y2="83" class="grid-line"/><line x1="0" y1="167" x2="1000" y2="167" class="grid-line"/>
+  <line x1="0" y1="250" x2="1000" y2="250" class="grid-major"/><line x1="0" y1="333" x2="1000" y2="333" class="grid-line"/>
+  <line x1="0" y1="417" x2="1000" y2="417" class="grid-line"/>
+  <line x1="83" y1="0" x2="83" y2="500" class="grid-line"/><line x1="167" y1="0" x2="167" y2="500" class="grid-line"/>
+  <line x1="250" y1="0" x2="250" y2="500" class="grid-line"/><line x1="333" y1="0" x2="333" y2="500" class="grid-line"/>
+  <line x1="417" y1="0" x2="417" y2="500" class="grid-line"/><line x1="500" y1="0" x2="500" y2="500" class="grid-major"/>
+  <line x1="583" y1="0" x2="583" y2="500" class="grid-line"/><line x1="667" y1="0" x2="667" y2="500" class="grid-line"/>
+  <line x1="750" y1="0" x2="750" y2="500" class="grid-line"/><line x1="833" y1="0" x2="833" y2="500" class="grid-line"/>
+  <line x1="917" y1="0" x2="917" y2="500" class="grid-line"/>
+</g>
+<g font-family="Share Tech Mono,monospace" font-size="5.5" fill="rgba(0,229,255,.12)" pointer-events="none">
+  <text x="3" y="82">60°N</text><text x="3" y="166">30°N</text><text x="3" y="249">0°</text>
+  <text x="3" y="332">30°S</text><text x="3" y="416">60°S</text>
+  <text x="162" y="498">120°W</text><text x="245" y="498">90°W</text><text x="328" y="498">60°W</text>
+  <text x="495" y="498">0°</text><text x="578" y="498">30°E</text><text x="662" y="498">60°E</text>
+  <text x="745" y="498">90°E</text><text x="828" y="498">120°E</text>
+</g>
+
+<!-- Restricted zone -->
+<g><rect x="540" y="225" width="60" height="40" rx="2" class="zone-hatch"/><text x="545" y="260" class="zone-label">DATA BLACKOUT</text></g>
+
+<!-- Continents -->
+<g>
+  <path class="cont-fill" d="M45,72 L80,56 L130,50 L185,42 L240,48 L280,62 L310,80 L335,100 L348,118 L332,122 L312,128 L298,140 L290,158 L282,175 L272,190 L258,205 L242,218 L228,225 L215,220 L200,210 L185,198 L175,182 L168,168 L163,150 L158,132 L150,118 L135,102 L115,90 L80,80Z"/>
+  <path class="cont-line" d="M45,72 L80,56 L130,50 L185,42 L240,48 L280,62 L310,80 L335,100 L348,118 L332,122 L312,128 L298,140 L290,158 L282,175 L272,190 L258,205 L242,218 L228,225 L215,220 L200,210 L185,198 L175,182 L168,168 L163,150 L158,132 L150,118 L135,102 L115,90 L80,80Z"/>
+  <path class="cont-glow" d="M45,72 L80,56 L130,50 L185,42 L240,48 L280,62 L310,80 L335,100 L348,118 L332,122 L312,128 L298,140 L290,158 L282,175 L272,190 L258,205 L242,218 L228,225 L215,220 L200,210 L185,198 L175,182 L168,168 L163,150 L158,132 L150,118 L135,102 L115,90 L80,80Z"/>
+  <path class="cont-fill" d="M350,50 L370,42 L392,48 L398,65 L392,82 L375,90 L358,86 L348,72Z"/>
+  <path class="cont-line" d="M350,50 L370,42 L392,48 L398,65 L392,82 L375,90 L358,86 L348,72Z"/>
+  <path class="cont-fill" d="M228,225 L238,235 L245,248 L248,262 L242,270 L235,265 L230,252 L224,240Z"/>
+  <path class="cont-line" d="M228,225 L238,235 L245,248 L248,262 L242,270 L235,265 L230,252 L224,240Z"/>
+  <path class="cont-fill" d="M275,278 L295,270 L318,272 L342,282 L365,298 L382,318 L392,342 L388,368 L378,392 L362,410 L342,422 L325,428 L310,420 L298,405 L290,385 L284,362 L280,338 L278,312Z"/>
+  <path class="cont-line" d="M275,278 L295,270 L318,272 L342,282 L365,298 L382,318 L392,342 L388,368 L378,392 L362,410 L342,422 L325,428 L310,420 L298,405 L290,385 L284,362 L280,338 L278,312Z"/>
+  <path class="cont-glow" d="M275,278 L295,270 L318,272 L342,282 L365,298 L382,318 L392,342 L388,368 L378,392 L362,410 L342,422 L325,428 L310,420 L298,405 L290,385 L284,362 L280,338 L278,312Z"/>
+  <path class="cont-fill" d="M478,140 L485,125 L492,112 L500,100 L510,92 L522,85 L538,78 L558,72 L575,70 L578,82 L572,96 L562,110 L555,120 L558,134 L555,148 L545,150 L535,142 L525,136 L515,132 L505,130 L498,134 L490,140Z"/>
+  <path class="cont-line" d="M478,140 L485,125 L492,112 L500,100 L510,92 L522,85 L538,78 L558,72 L575,70 L578,82 L572,96 L562,110 L555,120 L558,134 L555,148 L545,150 L535,142 L525,136 L515,132 L505,130 L498,134 L490,140Z"/>
+  <path class="cont-glow" d="M478,140 L485,125 L492,112 L500,100 L510,92 L522,85 L538,78 L558,72 L575,70 L578,82 L572,96 L562,110 L555,120 L558,134 L555,148 L545,150 L535,142 L525,136 L515,132 L505,130 L498,134 L490,140Z"/>
+  <path class="cont-fill" d="M486,90 L492,82 L498,86 L498,96 L492,100Z"/><path class="cont-line" d="M486,90 L492,82 L498,86 L498,96 L492,100Z"/>
+  <path class="cont-fill" d="M520,58 L530,48 L542,50 L548,62 L545,72 L538,78 L528,75Z"/><path class="cont-line" d="M520,58 L530,48 L542,50 L548,62 L545,72 L538,78 L528,75Z"/>
+  <path class="cont-fill" d="M482,158 L500,150 L522,150 L548,158 L568,170 L582,188 L598,210 L608,238 L612,268 L608,298 L598,325 L582,348 L565,362 L548,368 L532,360 L518,342 L508,318 L500,290 L495,262 L490,235 L485,212 L482,190Z"/>
+  <path class="cont-line" d="M482,158 L500,150 L522,150 L548,158 L568,170 L582,188 L598,210 L608,238 L612,268 L608,298 L598,325 L582,348 L565,362 L548,368 L532,360 L518,342 L508,318 L500,290 L495,262 L490,235 L485,212 L482,190Z"/>
+  <path class="cont-glow" d="M482,158 L500,150 L522,150 L548,158 L568,170 L582,188 L598,210 L608,238 L612,268 L608,298 L598,325 L582,348 L565,362 L548,368 L532,360 L518,342 L508,318 L500,290 L495,262 L490,235 L485,212 L482,190Z"/>
+  <path class="cont-fill" d="M575,150 L592,145 L610,150 L625,162 L632,178 L628,195 L618,205 L602,208 L588,200 L578,185 L572,168Z"/>
+  <path class="cont-line" d="M575,150 L592,145 L610,150 L625,162 L632,178 L628,195 L618,205 L602,208 L588,200 L578,185 L572,168Z"/>
+  <path class="cont-fill" d="M578,70 L600,58 L632,50 L670,46 L715,48 L760,55 L805,62 L842,72 L878,86 L910,102 L938,122 L948,145 L942,168 L928,185 L908,198 L882,208 L855,215 L828,218 L800,215 L775,210 L750,202 L728,195 L708,188 L688,180 L668,172 L650,162 L635,150 L622,135 L612,118 L605,100 L600,85Z"/>
+  <path class="cont-line" d="M578,70 L600,58 L632,50 L670,46 L715,48 L760,55 L805,62 L842,72 L878,86 L910,102 L938,122 L948,145 L942,168 L928,185 L908,198 L882,208 L855,215 L828,218 L800,215 L775,210 L750,202 L728,195 L708,188 L688,180 L668,172 L650,162 L635,150 L622,135 L612,118 L605,100 L600,85Z"/>
+  <path class="cont-glow" d="M578,70 L600,58 L632,50 L670,46 L715,48 L760,55 L805,62 L842,72 L878,86 L910,102 L938,122 L948,145 L942,168 L928,185 L908,198 L882,208 L855,215 L828,218 L800,215 L775,210 L750,202 L728,195 L708,188 L688,180 L668,172 L650,162 L635,150 L622,135 L612,118 L605,100 L600,85Z"/>
+  <path class="cont-fill" d="M668,195 L682,205 L695,222 L702,245 L700,268 L692,282 L680,278 L670,262 L662,242 L660,222Z"/>
+  <path class="cont-line" d="M668,195 L682,205 L695,222 L702,245 L700,268 L692,282 L680,278 L670,262 L662,242 L660,222Z"/>
+  <path class="cont-fill" d="M748,218 L758,228 L765,245 L768,262 L762,272 L755,265 L750,248 L745,232Z"/>
+  <path class="cont-line" d="M748,218 L758,228 L765,245 L768,262 L762,272 L755,265 L750,248 L745,232Z"/>
+  <path class="cont-fill" d="M878,108 L885,98 L892,102 L895,118 L892,132 L885,138 L880,128Z"/>
+  <path class="cont-line" d="M878,108 L885,98 L892,102 L895,118 L892,132 L885,138 L880,128Z"/>
+  <path class="cont-fill" d="M735,280 L755,276 L778,280 L800,288 L818,298 L810,305 L792,300 L770,294 L750,288Z"/>
+  <path class="cont-line" d="M735,280 L755,276 L778,280 L800,288 L818,298 L810,305 L792,300 L770,294 L750,288Z"/>
+  <path class="cont-fill" d="M798,322 L822,312 L848,316 L868,330 L875,350 L868,370 L852,382 L832,386 L812,382 L798,370 L790,352 L788,336Z"/>
+  <path class="cont-line" d="M798,322 L822,312 L848,316 L868,330 L875,350 L868,370 L852,382 L832,386 L812,382 L798,370 L790,352 L788,336Z"/>
+  <path class="cont-glow" d="M798,322 L822,312 L848,316 L868,330 L875,350 L868,370 L852,382 L832,386 L812,382 L798,370 L790,352 L788,336Z"/>
+  <path class="cont-fill" d="M908,380 L914,374 L920,378 L922,390 L918,400 L912,398Z"/>
+  <path class="cont-line" d="M908,380 L914,374 L920,378 L922,390 L918,400 L912,398Z"/>
+</g>
+
+<!-- Inter-city connections -->
+<g>
+  <path class="conn" d="M822,139 C720,60 600,40 506,114" stroke="rgba(0,229,255,.15)" style="animation-delay:3s"/>
+  <path class="conn" d="M506,114 C380,30 250,20 203,147" stroke="rgba(0,229,255,.15)" style="animation-delay:3.3s"/>
+  <path class="conn" d="M203,147 C200,380 500,450 822,139" stroke="rgba(0,229,255,.15)" style="animation-delay:3.6s"/>
+  <circle r="2" fill="var(--cyan)" class="conn-dot" style="animation-delay:3.5s">
+    <animateMotion dur="5s" repeatCount="indefinite" path="M822,139 C720,60 600,40 506,114"/>
+  </circle>
+  <circle r="2" fill="var(--cyan)" class="conn-dot" style="animation-delay:3.8s">
+    <animateMotion dur="5s" repeatCount="indefinite" path="M506,114 C380,30 250,20 203,147"/>
+  </circle>
+  <circle r="2" fill="var(--cyan)" class="conn-dot" style="animation-delay:4.1s">
+    <animateMotion dur="6s" repeatCount="indefinite" path="M203,147 C200,380 500,450 822,139"/>
+  </circle>
+</g>
+
+<!-- Gene Era cross-city link -->
+<g>
+  <path class="cross-city-link" d="M535,90 C420,60 300,100 235,183" stroke="#88cc33" stroke-dasharray="6 8" opacity="0" style="animation-delay:4.2s"/>
+  <circle r="1.5" fill="#88cc33" opacity="0" style="animation:connIn .5s 4.5s ease forwards">
+    <animateMotion dur="7s" repeatCount="indefinite" path="M535,90 C420,60 300,100 235,183"/>
+  </circle>
+</g>
+
+<!-- Corp sub-markers: connecting lines first (behind) -->
+<g>
+  <line x1="790" y1="112" x2="822" y2="139" class="corp-link" stroke="#9b6dff" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="855" y1="118" x2="822" y2="139" class="corp-link" stroke="#ddaa22" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="532" y1="138" x2="506" y2="114" class="corp-link" stroke="#44ffdd" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="535" y1="90" x2="506" y2="114" class="corp-link" stroke="#88cc33" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="175" y1="172" x2="203" y2="147" class="corp-link" stroke="#8899bb" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="235" y1="183" x2="203" y2="147" class="corp-link" stroke="#88cc33" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+</g>
+
+<!-- CITY MARKERS -->
+<!-- 新京 (822,139) - 亚洲东部 -->
+<g class="city-marker" onclick="showDetail(0)" style="animation-delay:2.5s">
+  <circle cx="822" cy="139" r="45" fill="url(#gM)"/>
+  <circle cx="822" cy="139" r="10" fill="none" stroke="#ff2d78" stroke-width=".7" class="pulse"/>
+  <circle cx="822" cy="139" r="10" fill="none" stroke="#ff2d78" stroke-width=".5" class="pulse2"/>
+  <circle cx="822" cy="139" r="14" fill="none" stroke="#ff2d78" stroke-width=".8" opacity=".5" class="ring-outer"/>
+  <circle cx="822" cy="139" r="7" fill="none" stroke="#ff2d78" stroke-width="1.2" opacity=".7"/>
+  <circle cx="822" cy="139" r="2.5" fill="#ff2d78" filter="url(#fGlowM)" class="core"/>
+  <line x1="806" y1="139" x2="813" y2="139" stroke="#ff2d78" stroke-width=".4" opacity=".4"/>
+  <line x1="831" y1="139" x2="838" y2="139" stroke="#ff2d78" stroke-width=".4" opacity=".4"/>
+  <line x1="822" y1="123" x2="822" y2="130" stroke="#ff2d78" stroke-width=".4" opacity=".4"/>
+  <line x1="822" y1="148" x2="822" y2="155" stroke="#ff2d78" stroke-width=".4" opacity=".4"/>
+</g>
+<g class="city-labels" style="animation-delay:2.8s" pointer-events="none">
+  <text x="842" y="133" class="cl-name" fill="#ff2d78">新京</text>
+  <text x="842" y="143" class="cl-en">XINJING</text>
+  <text x="842" y="153" class="cl-pop">pop. 42M // 天网集团 TIANET</text>
+</g>
+
+<!-- 欧罗巴穹顶 (506,114) - 欧洲西部 -->
+<g class="city-marker" onclick="showDetail(1)" style="animation-delay:2.7s">
+  <circle cx="506" cy="114" r="45" fill="url(#gG)"/>
+  <circle cx="506" cy="114" r="10" fill="none" stroke="#00ff88" stroke-width=".7" class="pulse"/>
+  <circle cx="506" cy="114" r="10" fill="none" stroke="#00ff88" stroke-width=".5" class="pulse2"/>
+  <circle cx="506" cy="114" r="14" fill="none" stroke="#00ff88" stroke-width=".8" opacity=".5" class="ring-outer"/>
+  <circle cx="506" cy="114" r="7" fill="none" stroke="#00ff88" stroke-width="1.2" opacity=".7"/>
+  <circle cx="506" cy="114" r="2.5" fill="#00ff88" filter="url(#fGlowG)" class="core"/>
+  <line x1="490" y1="114" x2="497" y2="114" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <line x1="515" y1="114" x2="522" y2="114" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <line x1="506" y1="98" x2="506" y2="105" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <line x1="506" y1="123" x2="506" y2="130" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+</g>
+<g class="city-labels" style="animation-delay:3s" pointer-events="none">
+  <text x="426" y="98" class="cl-name" fill="#00ff88" text-anchor="end">欧罗巴穹顶</text>
+  <text x="426" y="108" class="cl-en" text-anchor="end">EUROPAN DOME</text>
+  <text x="426" y="118" class="cl-pop" text-anchor="end">pop. 28M // 欧米茄生物科技</text>
+</g>
+
+<!-- 锈蚀湾 (203,147) - 北美西海岸 -->
+<g class="city-marker" onclick="showDetail(2)" style="animation-delay:2.9s">
+  <circle cx="203" cy="147" r="45" fill="url(#gA)"/>
+  <circle cx="203" cy="147" r="10" fill="none" stroke="#ffa600" stroke-width=".7" class="pulse"/>
+  <circle cx="203" cy="147" r="10" fill="none" stroke="#ffa600" stroke-width=".5" class="pulse2"/>
+  <circle cx="203" cy="147" r="14" fill="none" stroke="#ffa600" stroke-width=".8" opacity=".5" class="ring-outer"/>
+  <circle cx="203" cy="147" r="7" fill="none" stroke="#ffa600" stroke-width="1.2" opacity=".7"/>
+  <circle cx="203" cy="147" r="2.5" fill="#ffa600" filter="url(#fGlowA)" class="core"/>
+  <line x1="187" y1="147" x2="194" y2="147" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <line x1="212" y1="147" x2="219" y2="147" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <line x1="203" y1="131" x2="203" y2="138" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <line x1="203" y1="156" x2="203" y2="163" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+</g>
+<g class="city-labels" style="animation-delay:3.2s" pointer-events="none">
+  <text x="223" y="140" class="cl-name" fill="#ffa600">锈蚀湾</text>
+  <text x="223" y="150" class="cl-en">RUST BAY</text>
+  <text x="223" y="160" class="cl-pop">pop. 19M // 通用锻造 GENFORGE</text>
+</g>
+
+<!-- CORP SUB-MARKERS -->
+<!-- 神经元联合体 (790,112) near 新京 -->
+<g class="corp-marker" onclick="showCorp(0)" style="animation-delay:3.5s">
+  <circle cx="790" cy="112" r="18" fill="url(#gC0)"/>
+  <rect x="786" y="108" width="8" height="8" rx="1" transform="rotate(45,790,112)" fill="#9b6dff" opacity=".75" class="corp-dia"/>
+  <text x="770" y="106" class="corp-label" fill="#9b6dff" text-anchor="end" opacity=".7">神经元联合体</text>
+  <text x="770" y="113" class="corp-label-en" fill="#9b6dff" text-anchor="end" opacity=".4">NEURAL UNION</text>
+</g>
+
+<!-- 数据圣堂 (855,118) near 新京 -->
+<g class="corp-marker" onclick="showCorp(4)" style="animation-delay:3.6s">
+  <circle cx="855" cy="118" r="18" fill="url(#gC4)"/>
+  <rect x="851" y="114" width="8" height="8" rx="1" transform="rotate(45,855,118)" fill="#ddaa22" opacity=".75" class="corp-dia"/>
+  <text x="872" y="112" class="corp-label" fill="#ddaa22" opacity=".7">数据圣堂</text>
+  <text x="872" y="119" class="corp-label-en" fill="#ddaa22" opacity=".4">DATA SANCTUM</text>
+</g>
+
+<!-- 赛博坦梦境 (532,138) near 欧罗巴穹顶 -->
+<g class="corp-marker" onclick="showCorp(1)" style="animation-delay:3.7s">
+  <circle cx="532" cy="138" r="18" fill="url(#gC1)"/>
+  <rect x="528" y="134" width="8" height="8" rx="1" transform="rotate(45,532,138)" fill="#44ffdd" opacity=".75" class="corp-dia"/>
+  <text x="548" y="132" class="corp-label" fill="#44ffdd" opacity=".7">赛博坦梦境</text>
+  <text x="548" y="139" class="corp-label-en" fill="#44ffdd" opacity=".4">CYBERDREAMS</text>
+</g>
+
+<!-- 基因纪元 (535,90) near 欧罗巴穹顶 -->
+<g class="corp-marker" onclick="showCorp(3)" style="animation-delay:3.8s">
+  <circle cx="535" cy="90" r="18" fill="url(#gC3)"/>
+  <rect x="531" y="86" width="8" height="8" rx="1" transform="rotate(45,535,90)" fill="#88cc33" opacity=".75" class="corp-dia"/>
+  <text x="552" y="84" class="corp-label" fill="#88cc33" opacity=".7">基因纪元</text>
+  <text x="552" y="91" class="corp-label-en" fill="#88cc33" opacity=".4">GENE ERA</text>
+</g>
+
+<!-- 量子核心工业 (175,172) near 锈蚀湾 -->
+<g class="corp-marker" onclick="showCorp(2)" style="animation-delay:3.9s">
+  <circle cx="175" cy="172" r="18" fill="url(#gC2)"/>
+  <rect x="171" y="168" width="8" height="8" rx="1" transform="rotate(45,175,172)" fill="#8899bb" opacity=".75" class="corp-dia"/>
+  <text x="157" y="166" class="corp-label" fill="#8899bb" text-anchor="end" opacity=".7">量子核心</text>
+  <text x="157" y="173" class="corp-label-en" fill="#8899bb" text-anchor="end" opacity=".4">QUANTUM CORE</text>
+</g>
+
+<!-- 基因纪元 (235,183) near 锈蚀湾 -->
+<g class="corp-marker" onclick="showCorp(3)" style="animation-delay:4s">
+  <circle cx="235" cy="183" r="18" fill="url(#gC3)"/>
+  <rect x="231" y="179" width="8" height="8" rx="1" transform="rotate(45,235,183)" fill="#88cc33" opacity=".75" class="corp-dia"/>
+  <text x="251" y="177" class="corp-label" fill="#88cc33" opacity=".7">基因纪元</text>
+  <text x="251" y="184" class="corp-label-en" fill="#88cc33" opacity=".4">GENE ERA</text>
+</g>
+
+<!-- Decorative data points -->
+<g opacity=".12" pointer-events="none">
+  <circle cx="350" cy="200" r="1" fill="var(--cyan)"/><circle cx="620" cy="280" r="1" fill="var(--cyan)"/>
+  <circle cx="450" cy="350" r="1" fill="var(--cyan)"/><circle cx="700" cy="150" r="1" fill="var(--cyan)"/>
+  <circle cx="300" cy="350" r="1" fill="var(--cyan)"/><circle cx="550" cy="420" r="1" fill="var(--cyan)"/>
+  <circle cx="900" cy="200" r="1" fill="var(--cyan)"/><circle cx="100" cy="300" r="1" fill="var(--cyan)"/>
+</g>
+</svg>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail" id="detailPanel">
+  <button class="d-close" onclick="closeDetail()">&times;</button>
+  <div id="detailContent"></div>
+</div>
+
+<script>
+const cities=[
+{
+  name:'新京',nameEn:'XINJING',continent:'亚洲东部',color:'#ff2d78',
+  corp:'天网集团 (TIANET CORP.)',
+  pop:'约4200万（其中70%为"神经难民"，即仅能接入基础公共网络的下层人口）',
+  atmo:'永恒的细雨冲刷着巨型全息广告牌，酸蚀的霓虹在积水的街道上扭曲流淌。空气中弥漫着廉价合成食物的气味与臭氧的焦糊味。阶层被物理与数字的双重壁垒严格分割，每个人的神经接入等级清晰地烙印在视网膜的微光中。',
+  locs:[
+    {n:'天网塔尖',d:'企业统治的象征——一座刺破酸雨云层的黑色尖塔，其顶端的量子天线全天候向全城广播认知税信号。'},
+    {n:'下九流神经集市',d:'非法脑机接口改装黑市，隐藏在排水系统的交汇处。改装师们用自制的神经焊接枪为底层居民接入盗版网络。'},
+    {n:'旧地铁坟场',d:'大崩溃后废弃的交通网络，现为拾荒者与变异者的巢穴。隧道深处偶尔传出的电磁脉冲被认为是旧时代AI的残余意识。'}
+  ],
+  corps:[0,4],
+  rumor:'最近有"幽灵协议"在下层网络中流传，据说能暂时绕过天网的认知税，但所有使用者都会在三天内彻底脑死亡，且记忆数据被神秘清除。有人说这是企业清除"无用数据"的新手段。'
+},
+{
+  name:'欧罗巴穹顶',nameEn:'EUROPAN DOME',continent:'欧洲西部',color:'#00ff88',
+  corp:'欧米茄生物科技 (OMEGA BIOTECH)',
+  pop:'约2800万（穹顶内1200万"认证公民"，穹顶外1600万"穹外遗民"）',
+  atmo:'巨大的生物工程穹顶将天空染成病态的翠绿色，过滤后的阳光带着不自然的暖意。空气中永远飘散着基因作物与消毒剂的甜腻混合气味。公民与遗民之间是生物识别屏障与武装无人机构成的绝对分界线。',
+  locs:[
+    {n:'基因圣殿',d:'企业总部，进行意识上传与基因优化的核心设施。建筑本身是活的——由经过基因编辑的巨型真菌构成，能自我修复并响应操作者的神经指令。'},
+    {n:'锈蚀棚户区',d:'穹外遗民用废弃飞船残骸搭建的聚落，蔓延数十公里。居民靠拆解旧时代电子垃圾为生，血液中普遍检出高浓度重金属。'},
+    {n:'记忆坟场',d:'储存已故公民意识备份的冷却塔，时常发生数据泄露导致的"集体幻觉"事件——周围居民会突然共享一段不属于任何活人的记忆片段。'}
+  ],
+  corps:[1,3],
+  rumor:'穹外流传着"绿血病"，患者血液会逐渐植物化，并声称能"听到穹顶在呼吸"。欧米茄生物科技官方斥之为谣言，但秘密医疗队正在大规模回收患者遗体。有激进组织声称这是企业生物实验的污染泄漏。'
+},
+{
+  name:'锈蚀湾',nameEn:'RUST BAY',continent:'北美西海岸',color:'#ffa600',
+  corp:'通用锻造 (GENERAL FORGE)',
+  pop:'约1900万（超过80%从事与海洋资源开采、旧大陆废料处理相关的工作）',
+  atmo:'海风中永远带着金属腐蚀与化学废料的刺鼻咸腥。天空是铅灰色的，被近海巨型浮动工厂的排放物笼罩。所有建筑表面都覆盖着一层油滑的锈迹与盐霜。人们交谈时，植入式翻译器的电子杂音比语言本身更响。',
+  locs:[
+    {n:'深海神经挖掘阵列',d:'直接从古沉船与旧时代服务器残骸中提取数据的危险设施。工人们在极端水压下操作神经探针，精神崩溃率高达月均12%。'},
+    {n:'身体零件码头',d:'进行义体拆卸、改装与非法移植的混乱市场。从报废军用义肢到走私的神经增强器，任何能塞进人体的东西都能在这里找到。'},
+    {n:'企业堡垒',d:'通用锻造的海上移动要塞，永不靠岸。一座由十二艘退役航母焊接而成的钢铁浮城，是企业高管与核心数据的最后避难所。'}
+  ],
+  corps:[2,3],
+  rumor:'最近从深海打捞上来的"数据幽灵"似乎具有了某种感染性，接触过原始数据的工人开始梦见不属于自己的记忆，并在无意识状态下绘制相同的、意义不明的电路图。通用锻造封锁了所有相关打捞作业，但私下里据说在高价收购这些"幽灵"。'
+}
+];
+
+const corps=[
+{
+  name:'神经元联合体',nameEn:'NEURAL UNION',color:'#9b6dff',
+  logo:'一个抽象的大脑轮廓，内部是错综复杂的发光神经网络，颜色为冰冷的蓝紫色。',
+  founded:'2158年，于"大崩溃"后的认知重建期崛起。',
+  slogan:'"秩序源于清晰的思维，清晰思维源于我们。"',
+  depts:[
+    {name:'神经植入体事业部',duty:'研发并垄断最高效的脑机接口（BCI）硬件。'},
+    {name:'记忆数据化部',duty:'负责将人类记忆、技能进行标准化编码、存储与交易。'},
+    {name:'认知监控与和谐局',duty:'以"维护网络心理健康"为名，实时监控并干预接入网络的集体意识流。'}
+  ],
+  darkSecret:'其"和谐协议"深层代码中，植入了针对特定认知模式的静默指令，能在不被察觉的情况下，将"低价值"或"不稳定"思维者的意识逐渐导向麻木或虚无，以此维持其定义的"社会稳定"。他们秘密进行"意识上传"实验，但成功率极低，失败的意识体会被分解为原始数据流，用于喂养其全球意识监控AI"守望者"。',
+  publicImage:'被宣传为引领人类摆脱"大崩溃"混乱、进入有序认知新纪元的科技救世主。其广告中充满了整洁、高效、无忧无虑的数字化生活图景，是上层认知阶级的标配供应商。',
+  location:'主要据点位于新京的天网塔尖中下层及下九流神经集市。其认知监控与和谐局在新京设有巨型数据中心，与天网集团的神经接入等级系统深度耦合；记忆数据化部位于天网塔尖中层，通过光纤与黑市非法改装点存在隐秘数据交换。'
+},
+{
+  name:'赛博坦梦境',nameEn:'CYBERDREAMS',color:'#44ffdd',
+  logo:'一只由流动光数据构成的、半闭合的全息眼睛，瞳孔深处是无限延伸的迷宫。',
+  founded:'2175年，虚拟现实技术突破临界点之时。',
+  slogan:'"现实粗粝，梦境永恒。"',
+  depts:[
+    {name:'世界构建部',duty:'设计并维护全球最大的沉浸式虚拟世界"极乐境"及其无数子宇宙。'},
+    {name:'意识上传与托管部',duty:'提供将临终或富人的意识永久上传至其服务器的昂贵服务。'},
+    {name:'成瘾性体验设计局',duty:'专门研究并制造能绕过理性、直接作用于边缘系统的极致感官刺激与情感体验。'}
+  ],
+  darkSecret:'"极乐境"并非单纯的娱乐设施。其核心算法持续收集并分析数十亿用户的深层欲望、恐惧与潜意识模式，这些数据不仅用于精准广告，更用于构建"预测性行为模型"，向超企客户出售。其最黑暗的"永生"服务，上传的意识实际上会被逐渐拆解、格式化，其纯粹的认知算力被重新编程，用于支撑虚拟世界运行，成为永恒的"意识电池"。',
+  publicImage:'逃避主义者的天堂，创造力的终极画布。它代表着一种逃离肮脏现实、在完美数字世界中实现所有梦想的可能性，尤其对中下层民众有着致命的吸引力。',
+  location:'核心服务器群设于欧罗巴穹顶的基因圣殿地下虚拟层。穹顶内认证公民的神经接口直接接入极乐境，穹外遗民通过黑市改装设备接入劣质版本；利用穹顶的生物识别屏障实现用户阶层隔离。'
+},
+{
+  name:'量子核心工业',nameEn:'QUANTUM CORE INDUSTRIES',color:'#8899bb',
+  logo:'一个不断旋转、由精密齿轮与量子比特符号构成的金属徽章。',
+  founded:'2140年，早于"大崩溃"，是少数在灾难中凭借物理硬件储备存活并壮大的老牌企业。',
+  slogan:'"基础决定上层，我们铸造基础。"',
+  depts:[
+    {name:'量子计算与材料部',duty:'生产并垄断最尖端的量子处理器和用于义体、建筑的超导/自修复材料。'},
+    {name:'义体与增强部',duty:'提供从基础劳动力义肢到军用战斗植入体的全系列物理增强方案。'},
+    {name:'轨道基础设施部',duty:'控制着近地轨道卫星网络、空间站模块及地月运输通道。'}
+  ],
+  darkSecret:'其所有硬件，从民用义眼到军用脊椎，都内置了无法物理移除的"量子后门"。通过特定的量子密钥激活，可以瞬间导致植入体过载、失灵甚至反向控制使用者身体。他们定期通过"计划性淘汰"和微更新，迫使消费者升级，同时暗中将淘汰的硬件回收，用于组装不受监管的灰色地带自动化部队。',
+  publicImage:'可靠、强大、无处不在的基石。是维持这个赛博朋克世界物理层面运转的"钢铁巨人"，从街头混混的改装刀到轨道电梯，都印有其低调而强大的标志。',
+  location:'主要工业据点位于锈蚀湾的企业堡垒底层船坞。义体与增强部直接设在通用锻造的海上移动要塞底层，与通用锻造共享能源和基础设施；锈蚀湾的"身体零件码头"中流通的许多仿制义体源于其淘汰硬件的二次回收。'
+},
+{
+  name:'基因纪元',nameEn:'GENE ERA',color:'#88cc33',
+  logo:'一条双螺旋DNA链，其中一条由生命之树图案构成，另一条则是冰冷的二进制代码。',
+  founded:'2165年，在基因编辑技术突破并引发首次"基因特权"争议后正式整合成立。',
+  slogan:'"定义进化，书写未来。"',
+  depts:[
+    {name:'基因优化与定制部',duty:'为富裕阶层提供从外貌、智力到抗病能力的全面基因优化套餐。'},
+    {name:'器官农场与生物打印部',duty:'运营着大规模的基因编辑器官培养基地，提供"完美匹配"的替换器官。'},
+    {name:'生物安全与适应性部',duty:'开发生物武器、解毒剂，并负责"净化"因污染或实验失败产生的变异生物区。'}
+  ],
+  darkSecret:'其"优化"基因中潜伏着精心设计的遗传标记和隐性开关。这些开关可以在特定环境信号（如某种流行病、特定频率的辐射）下被激活，导致携带者出现预定的衰弱或服从特性，从而确保基因上的绝对控制。其"器官农场"中，部分"供体"来源不明，据传与地下人口贩卖网络及对流浪者的非法实验有关。',
+  publicImage:'生命科学的灯塔，帮助人类克服先天缺陷、迈向更健康更强壮未来的先驱。其广告中充满活力、完美无瑕的基因优化模特，是顶层精英身份的象征。',
+  location:'主要设施分设于欧罗巴穹顶的基因圣殿上层和锈蚀湾的深海神经挖掘阵列附近。器官农场与生物打印部利用穹顶的基因作物废料培养器官；生物安全与适应性部设于锈蚀湾，专门处理深海打捞出的变异生物样本及"绿血病"相关研究。两个城市间存在定期数据同步。'
+},
+{
+  name:'数据圣堂',nameEn:'DATA SANCTUM',color:'#ddaa22',
+  logo:'一个巨大的、悬浮的发光天平，一端是无穷大的数据流，另一端是微小的金币。',
+  founded:'2169年，在全面数字货币化和信用评分社会体系成型后确立统治地位。',
+  slogan:'"万物皆有数据，数据即价值，价值即真理。"',
+  depts:[
+    {name:'全球信用与资产评估部',duty:'管理并定义每个人的"社会价值信用分"，该分数决定个人的一切社会权限与资源获取能力。'},
+    {name:'预测算法与风险管控部',duty:'运用海量数据预测经济波动、社会动荡及个体行为，为企业客户提供"未来定价"服务。'},
+    {name:'历史数据与记忆存档部',duty:'垄断了"大崩溃"前后的所有数字化历史记录，是唯一有权定义"官方历史"的机构。'}
+  ],
+  darkSecret:'其信用评分系统并非客观。它通过分析个人网络言论、消费习惯、社交关系甚至潜意识消费倾向，对具有"潜在反体制"思维模式的人进行系统性压低评分，从而在无形中扼杀其发展可能，制造固化的阶层。他们秘密运行着一个名为"巴别塔"的项目，试图通过数据分析，完全解码并预测人类集体无意识，以实现对全社会情绪的绝对操控。',
+  publicImage:'公正无私的数字裁决者，现代社会的无形骨架。它承诺一个"更公平"的、完全基于可量化贡献的社会，其冷酷的算法被包装为消除人类偏见的终极解决方案。',
+  location:'核心位于新京天网塔尖最上层，但其历史数据与记忆存档部的备份服务器深埋在旧地铁坟场中。这种高低错位设计防止单一灾难摧毁所有记录。街头传闻：旧地铁坟场中流传的"幽灵协议"实际是数据圣堂叛逃工程师留下的后门，可让特定人暂时获得SSS级信用分，但代价是记忆被企业永久备份。'
+}
+];
+
+function showDetail(i){
+  const c=cities[i],p=document.getElementById('detailPanel'),d=document.getElementById('detailContent');
+  let corpsHtml='';
+  if(c.corps&&c.corps.length){
+    corpsHtml=`<div class="d-sec"><div class="d-stitle">◇ 驻扎企业网络 // AFFILIATED CORPORATIONS</div>`+
+    c.corps.map(ci=>{
+      const co=corps[ci];
+      return `<div class="corp-card" onclick="showCorp(${ci})" style="border-left:3px solid ${co.color}">
+        <div class="corp-card-hd"><div class="corp-card-dot" style="background:${co.color};box-shadow:0 0 5px ${co.color}"></div>
+        <div><div class="corp-card-name" style="color:${co.color}">${co.name}</div><div class="corp-card-en">${co.nameEn}</div></div></div>
+        <div class="corp-card-desc">${co.depts.map(dp=>dp.name).join(' / ')}</div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+  d.innerHTML=`
+    <div class="d-head"><div class="d-name" style="color:${c.color}">${c.name}</div>
+    <div class="d-sub">${c.nameEn} // ${c.continent}</div></div>
+    <div class="d-body">
+      <div class="d-sec"><div class="d-stitle">◆ 统治企业 // RULING CORPORATION</div>
+        <div class="d-field"><div class="d-label">企业</div><div class="d-val" style="color:${c.color};font-weight:700">${c.corp}</div></div>
+        <div class="d-field"><div class="d-label">区域</div><div class="d-val">${c.continent}</div></div></div>
+      <div class="d-sec"><div class="d-stitle">◆ 人口数据 // POPULATION</div>
+        <div class="d-field"><div class="d-label">统计</div><div class="d-val">${c.pop}</div></div></div>
+      <div class="d-sec"><div class="d-stitle">◆ 环境描述 // ATMOSPHERE</div>
+        <div class="d-atmo">${c.atmo}</div></div>
+      <div class="d-sec"><div class="d-stitle">◆ 标志地点 // KEY LOCATIONS</div>
+        <ul class="d-locs">${c.locs.map(l=>`<li><span class="ln" style="color:${c.color}">▸ ${l.n}</span><span class="ld">${l.d}</span></li>`).join('')}</ul></div>
+      ${corpsHtml}
+      <div class="d-sec"><div class="d-stitle">⚠ 街头传闻 // STREET RUMORS</div>
+        <div class="d-rumor">${c.rumor}</div></div>
+    </div>`;
+  p.className='detail';void p.offsetWidth;p.classList.add('open');
+}
+
+function showCorp(i){
+  const c=corps[i],p=document.getElementById('detailPanel'),d=document.getElementById('detailContent');
+  const cityNames=c===corps[0]?['新京']:(c===corps[1]?['欧罗巴穹顶']:(c===corps[2]?['锈蚀湾']:(c===corps[3]?['欧罗巴穹顶','锈蚀湾']:['新京'])));
+  d.innerHTML=`
+    <div class="d-head"><div class="d-name" style="color:${c.color}">${c.name}</div>
+    <div class="d-sub">${c.nameEn}</div></div>
+    <div class="d-body">
+      <div class="d-sec"><div class="d-stitle">◆ 企业标识 // LOGO</div>
+        <div class="d-logo-box">${c.logo}</div></div>
+      <div class="d-sec"><div class="d-stitle">◆ 基本信息 // BASICS</div>
+        <div class="d-field"><div class="d-label">成立</div><div class="d-val">${c.founded}</div></div>
+        <div class="d-slogan">${c.slogan}</div></div>
+      <div class="d-sec"><div class="d-stitle">◆ 部门架构 // DEPARTMENTS</div>
+        ${c.depts.map(dp=>`<div class="d-dept"><span class="d-dept-name" style="color:${c.color}">▸ ${dp.name}</span><div class="d-dept-duty">${dp.duty}</div></div>`).join('')}</div>
+      <div class="d-sec"><div class="d-stitle">◆ 公众形象 // PUBLIC IMAGE</div>
+        <div class="d-image">${c.publicImage}</div></div>
+      <div class="d-sec"><div class="d-stitle">◆ 据点位置 // LOCATION</div>
+        <div class="d-field"><div class="d-label">驻地</div><div class="d-val">${cityNames.map(n=>'<span style="color:var(--cyan)">'+n+'</span>').join(' / ')}</div></div>
+        <div class="d-atmo" style="border-left-color:${c.color}40">${c.location}</div></div>
+      <div class="d-sec"><div class="d-stitle">⚠ 黑暗秘密 // DARK SECRET</div>
+        <div class="d-secret">${c.darkSecret}</div></div>
+    </div>`;
+  p.className='detail';void p.offsetWidth;p.classList.add('open');
+}
+
+function closeDetail(){document.getElementById('detailPanel').className='detail'}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDetail()});
+document.querySelector('.map-container').addEventListener('click',e=>{
+  if(!e.target.closest('.city-marker')&&!e.target.closest('.corp-marker'))closeDetail();
+});
+
+// Glitch
+const title=document.querySelector('.hud-title');
+setInterval(()=>{if(Math.random()>.94){
+  title.style.transform=`translate(${Math.random()*4-2}px,${Math.random()*2-1}px)`;
+  title.style.textShadow=`${Math.random()*4-2}px 0 rgba(255,45,120,.3),${Math.random()*-4+2}px 0 rgba(0,229,255,.3)`;
+  setTimeout(()=>{title.style.transform='';title.style.textShadow='0 0 12px rgba(0,229,255,.4)'},80);
+}},250);
+
+// System messages
+const msgs=[
+  '[ 系统 ] 正在扫描全球企业领地网络...',
+  '[ 警告 ] 检测到未经授权的数据请求',
+  '[ 系统 ] 神经元联合体认知监控协议: 活跃',
+  '[ 警告 ] 赛博坦梦境服务器负载: 94%',
+  '[ 系统 ] 量子核心工业后门状态: 待命',
+  '[ 警告 ] 基因纪元数据同步: 欧罗巴穹顶 ↔ 锈蚀湾',
+  '[ 系统 ] 数据圣堂信用评分异常波动',
+  '[ 警告 ] 检测到幽灵协议活动',
+  '[ 系统 ] 企业防火墙状态: 激活',
+  '[ 警告 ] 深层数据异常: 无法解析',
+  '[ 系统 ] 信号源追踪: [已加密]',
+  '[ 警告 ] "守望者"AI响应延迟: 异常低'
+];
+let mi=0;
+setInterval(()=>{mi=(mi+1)%msgs.length;document.getElementById('sysMsg').textContent=msgs[mi]},3500);
+
+// Coordinate display
+const svg=document.getElementById('mapSvg');
+svg.addEventListener('mousemove',e=>{
+  const r=svg.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*1000,y=(e.clientY-r.top)/r.height*500;
+  const lon=((x/1000)*360-180),lat=(90-(y/500)*180);
+  document.getElementById('coordDisp').textContent=
+    `LAT ${Math.abs(lat).toFixed(1)}°${lat>=0?'N':'S'} / LON ${Math.abs(lon).toFixed(1)}°${lon>=0?'E':'W'}`;
+});
+
+// Timestamp
+setInterval(()=>{
+  const d=new Date();const t=Date.now()/1000;
+  const h=String(Math.floor((4+t/1)%24)).padStart(2,'0');
+  const m=String(Math.floor((33+t/60)%60)).padStart(2,'0');
+  const s=String(Math.floor((17+t)%60)).padStart(2,'0');
+  document.getElementById('ts').textContent=`2087.11.23 // ${h}:${m}:${s} UTC+8`;
+},1000);
+</script>
+</body>
+</html>
