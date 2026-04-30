@@ -62,16 +62,12 @@ body::before{
   font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-muted);
 }
 
-.map-container{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:55px 30px;z-index:1}
-.map-svg{width:100%;height:100%;max-width:1500px;opacity:0;animation:mapFadeIn 1.5s .3s ease forwards}
+.map-container{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:30px;z-index:1}
+.map-svg{width:100%;height:100%;max-width:none;opacity:0;animation:mapFadeIn 1.5s .3s ease forwards}
 
 .grid-line{stroke:var(--grid);stroke-width:.4;fill:none}
 .grid-major{stroke:rgba(0,229,255,.07);stroke-width:.6;stroke-dasharray:4 8}
-.cont-fill{fill:rgba(0,229,255,.025);stroke:none}
-.cont-line{fill:none;stroke:rgba(0,229,255,.18);stroke-width:.8;stroke-linejoin:round;
-  stroke-dasharray:2000;stroke-dashoffset:2000;animation:drawLine 2.5s .8s ease forwards}
-.cont-glow{fill:none;stroke:rgba(0,229,255,.05);stroke-width:3;filter:url(#fGlow);
-  stroke-dasharray:2000;stroke-dashoffset:2000;animation:drawLine 2.5s 1s ease forwards}
+
 
 .city-marker{cursor:pointer;pointer-events:all;opacity:0;animation:popIn .6s 2.5s cubic-bezier(.34,1.56,.64,1) forwards}
 .city-marker:hover .ring-outer{stroke-width:1.8}
@@ -114,7 +110,7 @@ body::before{
 .legend-d.diamond{border-radius:1px;transform:rotate(45deg);width:6px;height:6px}
 
 /* Detail Panel */
-.detail{position:fixed;right:-520px;top:0;bottom:0;width:500px;z-index:60;
+.detail{position:fixed;right:-520px;top:0;bottom:0;width:clamp(300px,33vw,520px);z-index:60;
   background:linear-gradient(160deg,rgba(8,14,28,.98),rgba(4,8,18,.99));
   border-left:1px solid rgba(0,229,255,.12);backdrop-filter:blur(24px);
   transition:right .55s cubic-bezier(.22,1,.36,1);overflow-y:auto;pointer-events:all;
@@ -127,16 +123,16 @@ body::before{
 .detail::before{content:'';position:absolute;top:0;left:0;bottom:0;width:1px;
   background:linear-gradient(to bottom,transparent,rgba(0,229,255,.4),transparent);
 }
-.d-close{position:absolute;top:18px;right:18px;width:30px;height:30px;background:none;
+.d-close{position:absolute;top:clamp(10px,1.5vw,18px);right:clamp(10px,1.5vw,18px);width:clamp(22px,2.2vw,30px);height:clamp(22px,2.2vw,30px);background:none;
   border:1px solid rgba(0,229,255,.2);color:var(--cyan);font-family:'Share Tech Mono',monospace;
-  font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(11px,1.2vw,15px);cursor:pointer;display:flex;align-items:center;justify-content:center;
   transition:all .2s;z-index:2}
 .d-close:hover{background:rgba(0,229,255,.08);border-color:var(--cyan)}
-.d-head{padding:28px 26px 18px;border-bottom:1px solid rgba(0,229,255,.06)}
-.d-name{font-family:'Noto Sans SC',sans-serif;font-size:26px;font-weight:700;margin-bottom:3px}
-.d-sub{font-family:'Orbitron',monospace;font-size:8px;color:var(--text-muted);letter-spacing:3px;text-transform:uppercase}
-.d-body{padding:22px 26px 40px}
-.d-sec{margin-bottom:22px;opacity:0;transform:translateY(10px);animation:fadeUp .4s ease forwards}
+.d-head{padding:clamp(16px,2.2vw,28px) clamp(16px,2.2vw,26px) clamp(10px,1.4vw,18px);border-bottom:1px solid rgba(0,229,255,.06)}
+.d-name{font-family:'Noto Sans SC',sans-serif;font-size:clamp(16px,2.1vw,26px);font-weight:700;margin-bottom:3px}
+.d-sub{font-family:'Orbitron',monospace;font-size:clamp(5.5px,.7vw,8px);color:var(--text-muted);letter-spacing:3px;text-transform:uppercase}
+.d-body{padding:clamp(14px,1.8vw,22px) clamp(16px,2.2vw,26px) clamp(24px,3.2vw,40px)}
+.d-sec{margin-bottom:clamp(14px,1.8vw,22px);opacity:0;transform:translateY(10px);animation:fadeUp .4s ease forwards}
 .d-sec:nth-child(1){animation-delay:.1s}
 .d-sec:nth-child(2){animation-delay:.18s}
 .d-sec:nth-child(3){animation-delay:.26s}
@@ -145,44 +141,44 @@ body::before{
 .d-sec:nth-child(6){animation-delay:.5s}
 .d-sec:nth-child(7){animation-delay:.58s}
 .d-sec:nth-child(8){animation-delay:.66s}
-.d-stitle{font-family:'Orbitron',monospace;font-size:8px;color:var(--cyan);
-  letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;
-  padding-bottom:5px;border-bottom:1px solid rgba(0,229,255,.08)}
-.d-field{display:flex;margin-bottom:8px;font-size:12px;line-height:1.7}
-.d-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-muted);
-  min-width:70px;padding-top:2px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
-.d-val{flex:1;color:var(--text);font-size:12.5px;line-height:1.8}
-.d-atmo{font-size:11.5px;line-height:2;color:rgba(180,200,210,.8);
-  padding:12px 14px;background:rgba(0,229,255,.02);border-left:2px solid rgba(0,229,255,.18)}
+.d-stitle{font-family:'Orbitron',monospace;font-size:clamp(5.5px,.7vw,8px);color:var(--cyan);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:clamp(6px,.8vw,10px);
+  padding-bottom:clamp(3px,.4vw,5px);border-bottom:1px solid rgba(0,229,255,.08)}
+.d-field{display:flex;margin-bottom:clamp(5px,.65vw,8px);font-size:clamp(9px,1vw,12px);line-height:1.7}
+.d-label{font-family:'Share Tech Mono',monospace;font-size:clamp(6.5px,.75vw,9px);color:var(--text-muted);
+  min-width:clamp(50px,5.5vw,70px);padding-top:2px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
+.d-val{flex:1;color:var(--text);font-size:clamp(9.5px,1.05vw,12.5px);line-height:1.8}
+.d-atmo{font-size:clamp(9px,.95vw,11.5px);line-height:2;color:rgba(180,200,210,.8);
+  padding:clamp(8px,1vw,12px) clamp(10px,1.1vw,14px);background:rgba(0,229,255,.02);border-left:2px solid rgba(0,229,255,.18)}
 .d-locs{list-style:none}
-.d-locs li{padding:8px 0;border-bottom:1px solid rgba(0,229,255,.03);font-size:11.5px;line-height:1.6}
+.d-locs li{padding:clamp(5px,.65vw,8px) 0;border-bottom:1px solid rgba(0,229,255,.03);font-size:clamp(9px,.95vw,11.5px);line-height:1.6}
 .d-locs .ln{font-weight:500;display:block}
-.d-locs .ld{color:var(--text-muted);font-size:10.5px}
-.d-rumor{padding:14px 14px;background:rgba(255,45,120,.03);border-left:2px solid rgba(255,45,120,.25);
-  font-size:11px;line-height:2;color:rgba(210,185,195,.85)}
+.d-locs .ld{color:var(--text-muted);font-size:clamp(8px,.85vw,10.5px)}
+.d-rumor{padding:clamp(10px,1.1vw,14px) clamp(10px,1.1vw,14px);background:rgba(255,45,120,.03);border-left:2px solid rgba(255,45,120,.25);
+  font-size:clamp(8.5px,.9vw,11px);line-height:2;color:rgba(210,185,195,.85)}
 
 /* Corp cards inside city detail */
-.corp-card{padding:12px 14px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);
-  margin-bottom:8px;cursor:pointer;transition:all .25s ease;border-radius:2px}
+.corp-card{padding:clamp(8px,1vw,12px) clamp(10px,1.1vw,14px);background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);
+  margin-bottom:clamp(5px,.65vw,8px);cursor:pointer;transition:all .25s ease;border-radius:2px}
 .corp-card:hover{background:rgba(255,255,255,.04);transform:translateX(3px)}
-.corp-card-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.corp-card-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.corp-card-name{font-family:'Noto Sans SC',sans-serif;font-size:12px;font-weight:700}
-.corp-card-en{font-family:'Orbitron',monospace;font-size:6.5px;color:var(--text-muted);letter-spacing:1px}
-.corp-card-desc{font-size:10px;color:var(--text-muted);line-height:1.7;margin-top:4px}
+.corp-card-hd{display:flex;align-items:center;gap:clamp(5px,.65vw,8px);margin-bottom:4px}
+.corp-card-dot{width:clamp(4px,.5vw,6px);height:clamp(4px,.5vw,6px);border-radius:50%;flex-shrink:0}
+.corp-card-name{font-family:'Noto Sans SC',sans-serif;font-size:clamp(9px,1vw,12px);font-weight:700}
+.corp-card-en{font-family:'Orbitron',monospace;font-size:clamp(5px,.55vw,6.5px);color:var(--text-muted);letter-spacing:1px}
+.corp-card-desc{font-size:clamp(7.5px,.8vw,10px);color:var(--text-muted);line-height:1.7;margin-top:4px}
 
 /* Corp detail specific */
-.d-logo-box{padding:14px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);border-radius:2px;
-  font-size:11.5px;line-height:1.8;color:rgba(180,200,210,.7);font-style:italic}
-.d-slogan{font-size:13px;font-style:italic;padding:10px 14px;background:rgba(255,255,255,.02);
+.d-logo-box{padding:clamp(10px,1.1vw,14px);background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.04);border-radius:2px;
+  font-size:clamp(9px,.95vw,11.5px);line-height:1.8;color:rgba(180,200,210,.7);font-style:italic}
+.d-slogan{font-size:clamp(10px,1.1vw,13px);font-style:italic;padding:clamp(7px,.8vw,10px) clamp(10px,1.1vw,14px);background:rgba(255,255,255,.02);
   border-left:2px solid rgba(255,255,255,.1);color:rgba(200,220,230,.8)}
-.d-dept{padding:10px 0;border-bottom:1px solid rgba(0,229,255,.03)}
-.d-dept-name{font-weight:700;font-size:12px;display:block;margin-bottom:2px}
-.d-dept-duty{font-size:11px;color:var(--text-muted);line-height:1.7}
-.d-secret{padding:14px;background:rgba(255,45,120,.04);border:1px solid rgba(255,45,120,.08);
-  border-left:3px solid rgba(255,45,120,.3);font-size:11px;line-height:2;color:rgba(210,185,195,.8);border-radius:2px}
-.d-image{padding:12px 14px;background:rgba(0,229,255,.02);border-left:2px solid rgba(0,229,255,.15);
-  font-size:11.5px;line-height:2;color:rgba(180,200,210,.75)}
+.d-dept{padding:clamp(7px,.8vw,10px) 0;border-bottom:1px solid rgba(0,229,255,.03)}
+.d-dept-name{font-weight:700;font-size:clamp(9px,1vw,12px);display:block;margin-bottom:2px}
+.d-dept-duty{font-size:clamp(8.5px,.9vw,11px);color:var(--text-muted);line-height:1.7}
+.d-secret{padding:clamp(10px,1.1vw,14px);background:rgba(255,45,120,.04);border:1px solid rgba(255,45,120,.08);
+  border-left:3px solid rgba(255,45,120,.3);font-size:clamp(8.5px,.9vw,11px);line-height:2;color:rgba(210,185,195,.8);border-radius:2px}
+.d-image{padding:clamp(9px,1vw,12px) clamp(10px,1.1vw,14px);background:rgba(0,229,255,.02);border-left:2px solid rgba(0,229,255,.15);
+  font-size:clamp(9px,.95vw,11.5px);line-height:2;color:rgba(180,200,210,.75)}
 
 @keyframes scanDown{0%{top:-2px}100%{top:100vh}}
 @keyframes pulse{0%,100%{opacity:.5;r:10}50%{opacity:0;r:22}}
@@ -297,65 +293,30 @@ body::before{
 
 <!-- Continents -->
 <g>
-  <path class="cont-fill" d="M45,72 L80,56 L130,50 L185,42 L240,48 L280,62 L310,80 L335,100 L348,118 L332,122 L312,128 L298,140 L290,158 L282,175 L272,190 L258,205 L242,218 L228,225 L215,220 L200,210 L185,198 L175,182 L168,168 L163,150 L158,132 L150,118 L135,102 L115,90 L80,80Z"/>
-  <path class="cont-line" d="M45,72 L80,56 L130,50 L185,42 L240,48 L280,62 L310,80 L335,100 L348,118 L332,122 L312,128 L298,140 L290,158 L282,175 L272,190 L258,205 L242,218 L228,225 L215,220 L200,210 L185,198 L175,182 L168,168 L163,150 L158,132 L150,118 L135,102 L115,90 L80,80Z"/>
-  <path class="cont-glow" d="M45,72 L80,56 L130,50 L185,42 L240,48 L280,62 L310,80 L335,100 L348,118 L332,122 L312,128 L298,140 L290,158 L282,175 L272,190 L258,205 L242,218 L228,225 L215,220 L200,210 L185,198 L175,182 L168,168 L163,150 L158,132 L150,118 L135,102 L115,90 L80,80Z"/>
-  <path class="cont-fill" d="M350,50 L370,42 L392,48 L398,65 L392,82 L375,90 L358,86 L348,72Z"/>
-  <path class="cont-line" d="M350,50 L370,42 L392,48 L398,65 L392,82 L375,90 L358,86 L348,72Z"/>
-  <path class="cont-fill" d="M228,225 L238,235 L245,248 L248,262 L242,270 L235,265 L230,252 L224,240Z"/>
-  <path class="cont-line" d="M228,225 L238,235 L245,248 L248,262 L242,270 L235,265 L230,252 L224,240Z"/>
-  <path class="cont-fill" d="M275,278 L295,270 L318,272 L342,282 L365,298 L382,318 L392,342 L388,368 L378,392 L362,410 L342,422 L325,428 L310,420 L298,405 L290,385 L284,362 L280,338 L278,312Z"/>
-  <path class="cont-line" d="M275,278 L295,270 L318,272 L342,282 L365,298 L382,318 L392,342 L388,368 L378,392 L362,410 L342,422 L325,428 L310,420 L298,405 L290,385 L284,362 L280,338 L278,312Z"/>
-  <path class="cont-glow" d="M275,278 L295,270 L318,272 L342,282 L365,298 L382,318 L392,342 L388,368 L378,392 L362,410 L342,422 L325,428 L310,420 L298,405 L290,385 L284,362 L280,338 L278,312Z"/>
-  <path class="cont-fill" d="M478,140 L485,125 L492,112 L500,100 L510,92 L522,85 L538,78 L558,72 L575,70 L578,82 L572,96 L562,110 L555,120 L558,134 L555,148 L545,150 L535,142 L525,136 L515,132 L505,130 L498,134 L490,140Z"/>
-  <path class="cont-line" d="M478,140 L485,125 L492,112 L500,100 L510,92 L522,85 L538,78 L558,72 L575,70 L578,82 L572,96 L562,110 L555,120 L558,134 L555,148 L545,150 L535,142 L525,136 L515,132 L505,130 L498,134 L490,140Z"/>
-  <path class="cont-glow" d="M478,140 L485,125 L492,112 L500,100 L510,92 L522,85 L538,78 L558,72 L575,70 L578,82 L572,96 L562,110 L555,120 L558,134 L555,148 L545,150 L535,142 L525,136 L515,132 L505,130 L498,134 L490,140Z"/>
-  <path class="cont-fill" d="M486,90 L492,82 L498,86 L498,96 L492,100Z"/><path class="cont-line" d="M486,90 L492,82 L498,86 L498,96 L492,100Z"/>
-  <path class="cont-fill" d="M520,58 L530,48 L542,50 L548,62 L545,72 L538,78 L528,75Z"/><path class="cont-line" d="M520,58 L530,48 L542,50 L548,62 L545,72 L538,78 L528,75Z"/>
-  <path class="cont-fill" d="M482,158 L500,150 L522,150 L548,158 L568,170 L582,188 L598,210 L608,238 L612,268 L608,298 L598,325 L582,348 L565,362 L548,368 L532,360 L518,342 L508,318 L500,290 L495,262 L490,235 L485,212 L482,190Z"/>
-  <path class="cont-line" d="M482,158 L500,150 L522,150 L548,158 L568,170 L582,188 L598,210 L608,238 L612,268 L608,298 L598,325 L582,348 L565,362 L548,368 L532,360 L518,342 L508,318 L500,290 L495,262 L490,235 L485,212 L482,190Z"/>
-  <path class="cont-glow" d="M482,158 L500,150 L522,150 L548,158 L568,170 L582,188 L598,210 L608,238 L612,268 L608,298 L598,325 L582,348 L565,362 L548,368 L532,360 L518,342 L508,318 L500,290 L495,262 L490,235 L485,212 L482,190Z"/>
-  <path class="cont-fill" d="M575,150 L592,145 L610,150 L625,162 L632,178 L628,195 L618,205 L602,208 L588,200 L578,185 L572,168Z"/>
-  <path class="cont-line" d="M575,150 L592,145 L610,150 L625,162 L632,178 L628,195 L618,205 L602,208 L588,200 L578,185 L572,168Z"/>
-  <path class="cont-fill" d="M578,70 L600,58 L632,50 L670,46 L715,48 L760,55 L805,62 L842,72 L878,86 L910,102 L938,122 L948,145 L942,168 L928,185 L908,198 L882,208 L855,215 L828,218 L800,215 L775,210 L750,202 L728,195 L708,188 L688,180 L668,172 L650,162 L635,150 L622,135 L612,118 L605,100 L600,85Z"/>
-  <path class="cont-line" d="M578,70 L600,58 L632,50 L670,46 L715,48 L760,55 L805,62 L842,72 L878,86 L910,102 L938,122 L948,145 L942,168 L928,185 L908,198 L882,208 L855,215 L828,218 L800,215 L775,210 L750,202 L728,195 L708,188 L688,180 L668,172 L650,162 L635,150 L622,135 L612,118 L605,100 L600,85Z"/>
-  <path class="cont-glow" d="M578,70 L600,58 L632,50 L670,46 L715,48 L760,55 L805,62 L842,72 L878,86 L910,102 L938,122 L948,145 L942,168 L928,185 L908,198 L882,208 L855,215 L828,218 L800,215 L775,210 L750,202 L728,195 L708,188 L688,180 L668,172 L650,162 L635,150 L622,135 L612,118 L605,100 L600,85Z"/>
-  <path class="cont-fill" d="M668,195 L682,205 L695,222 L702,245 L700,268 L692,282 L680,278 L670,262 L662,242 L660,222Z"/>
-  <path class="cont-line" d="M668,195 L682,205 L695,222 L702,245 L700,268 L692,282 L680,278 L670,262 L662,242 L660,222Z"/>
-  <path class="cont-fill" d="M748,218 L758,228 L765,245 L768,262 L762,272 L755,265 L750,248 L745,232Z"/>
-  <path class="cont-line" d="M748,218 L758,228 L765,245 L768,262 L762,272 L755,265 L750,248 L745,232Z"/>
-  <path class="cont-fill" d="M878,108 L885,98 L892,102 L895,118 L892,132 L885,138 L880,128Z"/>
-  <path class="cont-line" d="M878,108 L885,98 L892,102 L895,118 L892,132 L885,138 L880,128Z"/>
-  <path class="cont-fill" d="M735,280 L755,276 L778,280 L800,288 L818,298 L810,305 L792,300 L770,294 L750,288Z"/>
-  <path class="cont-line" d="M735,280 L755,276 L778,280 L800,288 L818,298 L810,305 L792,300 L770,294 L750,288Z"/>
-  <path class="cont-fill" d="M798,322 L822,312 L848,316 L868,330 L875,350 L868,370 L852,382 L832,386 L812,382 L798,370 L790,352 L788,336Z"/>
-  <path class="cont-line" d="M798,322 L822,312 L848,316 L868,330 L875,350 L868,370 L852,382 L832,386 L812,382 L798,370 L790,352 L788,336Z"/>
-  <path class="cont-glow" d="M798,322 L822,312 L848,316 L868,330 L875,350 L868,370 L852,382 L832,386 L812,382 L798,370 L790,352 L788,336Z"/>
-  <path class="cont-fill" d="M908,380 L914,374 L920,378 L922,390 L918,400 L912,398Z"/>
-  <path class="cont-line" d="M908,380 L914,374 L920,378 L922,390 L918,400 L912,398Z"/>
+  <image href="world_map.png" x="0" y="0" width="1000" height="500" preserveAspectRatio="none" opacity="0.85" style="animation:drawLine 2.5s .8s ease forwards"/>
 </g>
 
 <!-- Inter-city connections -->
 <g>
-  <path class="conn" d="M822,139 C720,60 600,40 506,114" stroke="rgba(0,229,255,.15)" style="animation-delay:3s"/>
-  <path class="conn" d="M506,114 C380,30 250,20 203,147" stroke="rgba(0,229,255,.15)" style="animation-delay:3.3s"/>
-  <path class="conn" d="M203,147 C200,380 500,450 822,139" stroke="rgba(0,229,255,.15)" style="animation-delay:3.6s"/>
+  <path class="conn" d="M822,139 C720,70 600,50 506,124" stroke="rgba(0,229,255,.15)" style="animation-delay:3s"/>
+  <path class="conn" d="M506,124 C380,40 220,30 123,147" stroke="rgba(0,229,255,.15)" style="animation-delay:3.3s"/>
+  <path class="conn" d="M123,147 C150,380 500,450 822,139" stroke="rgba(0,229,255,.15)" style="animation-delay:3.6s"/>
   <circle r="2" fill="var(--cyan)" class="conn-dot" style="animation-delay:3.5s">
-    <animateMotion dur="5s" repeatCount="indefinite" path="M822,139 C720,60 600,40 506,114"/>
+    <animateMotion dur="5s" repeatCount="indefinite" path="M822,139 C720,70 600,50 506,124"/>
   </circle>
   <circle r="2" fill="var(--cyan)" class="conn-dot" style="animation-delay:3.8s">
-    <animateMotion dur="5s" repeatCount="indefinite" path="M506,114 C380,30 250,20 203,147"/>
+    <animateMotion dur="5s" repeatCount="indefinite" path="M506,124 C380,40 220,30 123,147"/>
   </circle>
   <circle r="2" fill="var(--cyan)" class="conn-dot" style="animation-delay:4.1s">
-    <animateMotion dur="6s" repeatCount="indefinite" path="M203,147 C200,380 500,450 822,139"/>
+    <animateMotion dur="6s" repeatCount="indefinite" path="M123,147 C150,380 500,450 822,139"/>
   </circle>
 </g>
 
 <!-- Gene Era cross-city link -->
 <g>
-  <path class="cross-city-link" d="M535,90 C420,60 300,100 235,183" stroke="#88cc33" stroke-dasharray="6 8" opacity="0" style="animation-delay:4.2s"/>
+  <path class="cross-city-link" d="M535,120 C420,80 300,150 235,183" stroke="#88cc33" stroke-dasharray="6 8" opacity="0" style="animation-delay:4.2s"/>
   <circle r="1.5" fill="#88cc33" opacity="0" style="animation:connIn .5s 4.5s ease forwards">
-    <animateMotion dur="7s" repeatCount="indefinite" path="M535,90 C420,60 300,100 235,183"/>
+    <animateMotion dur="7s" repeatCount="indefinite" path="M535,120 C420,80 300,150 235,183"/>
   </circle>
 </g>
 
@@ -363,10 +324,10 @@ body::before{
 <g>
   <line x1="790" y1="112" x2="822" y2="139" class="corp-link" stroke="#9b6dff" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
   <line x1="855" y1="118" x2="822" y2="139" class="corp-link" stroke="#ddaa22" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
-  <line x1="532" y1="138" x2="506" y2="114" class="corp-link" stroke="#44ffdd" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
-  <line x1="535" y1="90" x2="506" y2="114" class="corp-link" stroke="#88cc33" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
-  <line x1="175" y1="172" x2="203" y2="147" class="corp-link" stroke="#8899bb" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
-  <line x1="235" y1="183" x2="203" y2="147" class="corp-link" stroke="#88cc33" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="532" y1="168" x2="506" y2="124" class="corp-link" stroke="#44ffdd" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="535" y1="120" x2="506" y2="124" class="corp-link" stroke="#88cc33" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="165" y1="192" x2="123" y2="147" class="corp-link" stroke="#8899bb" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
+  <line x1="235" y1="183" x2="123" y2="147" class="corp-link" stroke="#88cc33" stroke-width=".4" opacity=".15" stroke-dasharray="2 3"/>
 </g>
 
 <!-- CITY MARKERS -->
@@ -389,42 +350,42 @@ body::before{
   <text x="842" y="153" class="cl-pop">pop. 42M // 天网集团 TIANET</text>
 </g>
 
-<!-- 欧罗巴穹顶 (506,114) - 欧洲西部 -->
+<!-- 欧罗巴穹顶 (506,124) - 欧洲西部 -->
 <g class="city-marker" onclick="showDetail(1)" style="animation-delay:2.7s">
-  <circle cx="506" cy="114" r="45" fill="url(#gG)"/>
-  <circle cx="506" cy="114" r="10" fill="none" stroke="#00ff88" stroke-width=".7" class="pulse"/>
-  <circle cx="506" cy="114" r="10" fill="none" stroke="#00ff88" stroke-width=".5" class="pulse2"/>
-  <circle cx="506" cy="114" r="14" fill="none" stroke="#00ff88" stroke-width=".8" opacity=".5" class="ring-outer"/>
-  <circle cx="506" cy="114" r="7" fill="none" stroke="#00ff88" stroke-width="1.2" opacity=".7"/>
-  <circle cx="506" cy="114" r="2.5" fill="#00ff88" filter="url(#fGlowG)" class="core"/>
-  <line x1="490" y1="114" x2="497" y2="114" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
-  <line x1="515" y1="114" x2="522" y2="114" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
-  <line x1="506" y1="98" x2="506" y2="105" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
-  <line x1="506" y1="123" x2="506" y2="130" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <circle cx="506" cy="124" r="45" fill="url(#gG)"/>
+  <circle cx="506" cy="124" r="10" fill="none" stroke="#00ff88" stroke-width=".7" class="pulse"/>
+  <circle cx="506" cy="124" r="10" fill="none" stroke="#00ff88" stroke-width=".5" class="pulse2"/>
+  <circle cx="506" cy="124" r="14" fill="none" stroke="#00ff88" stroke-width=".8" opacity=".5" class="ring-outer"/>
+  <circle cx="506" cy="124" r="7" fill="none" stroke="#00ff88" stroke-width="1.2" opacity=".7"/>
+  <circle cx="506" cy="124" r="2.5" fill="#00ff88" filter="url(#fGlowG)" class="core"/>
+  <line x1="490" y1="124" x2="497" y2="124" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <line x1="515" y1="124" x2="522" y2="124" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <line x1="506" y1="108" x2="506" y2="115" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
+  <line x1="506" y1="133" x2="506" y2="140" stroke="#00ff88" stroke-width=".4" opacity=".4"/>
 </g>
 <g class="city-labels" style="animation-delay:3s" pointer-events="none">
-  <text x="426" y="98" class="cl-name" fill="#00ff88" text-anchor="end">欧罗巴穹顶</text>
-  <text x="426" y="108" class="cl-en" text-anchor="end">EUROPAN DOME</text>
-  <text x="426" y="118" class="cl-pop" text-anchor="end">pop. 28M // 欧米茄生物科技</text>
+  <text x="485" y="108" class="cl-name" fill="#00ff88" text-anchor="end">欧罗巴穹顶</text>
+  <text x="485" y="118" class="cl-en" text-anchor="end">EUROPAN DOME</text>
+  <text x="485" y="128" class="cl-pop" text-anchor="end">pop. 28M // 欧米茄生物科技</text>
 </g>
 
-<!-- 锈蚀湾 (203,147) - 北美西海岸 -->
+<!-- 锈蚀湾 (123,147) - 北美西海岸 -->
 <g class="city-marker" onclick="showDetail(2)" style="animation-delay:2.9s">
-  <circle cx="203" cy="147" r="45" fill="url(#gA)"/>
-  <circle cx="203" cy="147" r="10" fill="none" stroke="#ffa600" stroke-width=".7" class="pulse"/>
-  <circle cx="203" cy="147" r="10" fill="none" stroke="#ffa600" stroke-width=".5" class="pulse2"/>
-  <circle cx="203" cy="147" r="14" fill="none" stroke="#ffa600" stroke-width=".8" opacity=".5" class="ring-outer"/>
-  <circle cx="203" cy="147" r="7" fill="none" stroke="#ffa600" stroke-width="1.2" opacity=".7"/>
-  <circle cx="203" cy="147" r="2.5" fill="#ffa600" filter="url(#fGlowA)" class="core"/>
-  <line x1="187" y1="147" x2="194" y2="147" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
-  <line x1="212" y1="147" x2="219" y2="147" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
-  <line x1="203" y1="131" x2="203" y2="138" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
-  <line x1="203" y1="156" x2="203" y2="163" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <circle cx="123" cy="147" r="45" fill="url(#gA)"/>
+  <circle cx="123" cy="147" r="10" fill="none" stroke="#ffa600" stroke-width=".7" class="pulse"/>
+  <circle cx="123" cy="147" r="10" fill="none" stroke="#ffa600" stroke-width=".5" class="pulse2"/>
+  <circle cx="123" cy="147" r="14" fill="none" stroke="#ffa600" stroke-width=".8" opacity=".5" class="ring-outer"/>
+  <circle cx="123" cy="147" r="7" fill="none" stroke="#ffa600" stroke-width="1.2" opacity=".7"/>
+  <circle cx="123" cy="147" r="2.5" fill="#ffa600" filter="url(#fGlowA)" class="core"/>
+  <line x1="107" y1="147" x2="114" y2="147" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <line x1="132" y1="147" x2="139" y2="147" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <line x1="123" y1="131" x2="123" y2="138" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
+  <line x1="123" y1="156" x2="123" y2="163" stroke="#ffa600" stroke-width=".4" opacity=".4"/>
 </g>
 <g class="city-labels" style="animation-delay:3.2s" pointer-events="none">
-  <text x="223" y="140" class="cl-name" fill="#ffa600">锈蚀湾</text>
-  <text x="223" y="150" class="cl-en">RUST BAY</text>
-  <text x="223" y="160" class="cl-pop">pop. 19M // 通用锻造 GENFORGE</text>
+  <text x="143" y="140" class="cl-name" fill="#ffa600">锈蚀湾</text>
+  <text x="143" y="150" class="cl-en">RUST BAY</text>
+  <text x="143" y="160" class="cl-pop">pop. 19M // 通用锻造 GENFORGE</text>
 </g>
 
 <!-- CORP SUB-MARKERS -->
@@ -444,28 +405,28 @@ body::before{
   <text x="872" y="119" class="corp-label-en" fill="#ddaa22" opacity=".4">DATA SANCTUM</text>
 </g>
 
-<!-- 赛博坦梦境 (532,138) near 欧罗巴穹顶 -->
+<!-- 赛博坦梦境 (532,168) near 欧罗巴穹顶 -->
 <g class="corp-marker" onclick="showCorp(1)" style="animation-delay:3.7s">
-  <circle cx="532" cy="138" r="18" fill="url(#gC1)"/>
-  <rect x="528" y="134" width="8" height="8" rx="1" transform="rotate(45,532,138)" fill="#44ffdd" opacity=".75" class="corp-dia"/>
-  <text x="548" y="132" class="corp-label" fill="#44ffdd" opacity=".7">赛博坦梦境</text>
-  <text x="548" y="139" class="corp-label-en" fill="#44ffdd" opacity=".4">CYBERDREAMS</text>
+  <circle cx="532" cy="168" r="18" fill="url(#gC1)"/>
+  <rect x="528" y="164" width="8" height="8" rx="1" transform="rotate(45,532,168)" fill="#44ffdd" opacity=".75" class="corp-dia"/>
+  <text x="548" y="162" class="corp-label" fill="#44ffdd" opacity=".7">赛博坦梦境</text>
+  <text x="548" y="169" class="corp-label-en" fill="#44ffdd" opacity=".4">CYBERDREAMS</text>
 </g>
 
-<!-- 基因纪元 (535,90) near 欧罗巴穹顶 -->
+<!-- 基因纪元 (535,120) near 欧罗巴穹顶 -->
 <g class="corp-marker" onclick="showCorp(3)" style="animation-delay:3.8s">
-  <circle cx="535" cy="90" r="18" fill="url(#gC3)"/>
-  <rect x="531" y="86" width="8" height="8" rx="1" transform="rotate(45,535,90)" fill="#88cc33" opacity=".75" class="corp-dia"/>
-  <text x="552" y="84" class="corp-label" fill="#88cc33" opacity=".7">基因纪元</text>
-  <text x="552" y="91" class="corp-label-en" fill="#88cc33" opacity=".4">GENE ERA</text>
+  <circle cx="535" cy="120" r="18" fill="url(#gC3)"/>
+  <rect x="531" y="116" width="8" height="8" rx="1" transform="rotate(45,535,120)" fill="#88cc33" opacity=".75" class="corp-dia"/>
+  <text x="552" y="114" class="corp-label" fill="#88cc33" opacity=".7">基因纪元</text>
+  <text x="552" y="121" class="corp-label-en" fill="#88cc33" opacity=".4">GENE ERA</text>
 </g>
 
-<!-- 量子核心工业 (175,172) near 锈蚀湾 -->
+<!-- 量子核心工业 (165,192) near 锈蚀湾 -->
 <g class="corp-marker" onclick="showCorp(2)" style="animation-delay:3.9s">
-  <circle cx="175" cy="172" r="18" fill="url(#gC2)"/>
-  <rect x="171" y="168" width="8" height="8" rx="1" transform="rotate(45,175,172)" fill="#8899bb" opacity=".75" class="corp-dia"/>
-  <text x="157" y="166" class="corp-label" fill="#8899bb" text-anchor="end" opacity=".7">量子核心</text>
-  <text x="157" y="173" class="corp-label-en" fill="#8899bb" text-anchor="end" opacity=".4">QUANTUM CORE</text>
+  <circle cx="165" cy="192" r="18" fill="url(#gC2)"/>
+  <rect x="161" y="188" width="8" height="8" rx="1" transform="rotate(45,165,192)" fill="#8899bb" opacity=".75" class="corp-dia"/>
+  <text x="148" y="189" class="corp-label" fill="#8899bb" text-anchor="end" opacity=".7">量子核心</text>
+  <text x="148" y="196" class="corp-label-en" fill="#8899bb" text-anchor="end" opacity=".4">QUANTUM CORE</text>
 </g>
 
 <!-- 基因纪元 (235,183) near 锈蚀湾 -->
