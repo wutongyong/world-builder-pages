@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>赛博朋克 · 灰烬纪元</title>
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #fcee0a;
+            --bg-black: #050505;
+            --card-bg: rgba(20, 20, 20, 0.8);
+        }
+
+        body {
+            background-color: var(--bg-black);
+            background-image:
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px; /* 数字化背景网格 */
+            color: #e0e0e0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* 标题闪烁动画 */
+        h1, h2 {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            border-left: 5px solid var(--neon-pink);
+            padding-left: 15px;
+        }
+
+        /* 导航栏 */
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--neon-blue);
+            padding-bottom: 15px;
+        }
+
+        /* 基础按钮样式 */
+        button {
+            background: rgba(10, 10, 20, 0.8);
+            border: 1px solid;
+            padding: 10px 22px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            clip-path: polygon(8% 0, 100% 0, 92% 100%, 0% 100%);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 按钮发光动画 */
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        /* 按钮边框发光效果 */
+        button::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            border: 1px solid transparent;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        button:hover::after {
+            opacity: 1;
+        }
+
+        /* 编年史按钮 - 青色 */
+        button[data-category="timeline"] {
+            border-color: #00ffff;
+            color: #00ffff;
+        }
+        button[data-category="timeline"]:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(0, 255, 255, 0.3);
+        }
+        button[data-category="timeline"]::after {
+            border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        /* 全球地图按钮 - 绿色 */
+        #openMapBtn {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        #openMapBtn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 0 40px rgba(0, 255, 136, 0.3);
+        }
+        #openMapBtn::after {
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+
+        /* 小说正篇按钮 - 绿色 */
+        #novelBtn {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+        #novelBtn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 0 40px rgba(0, 255, 136, 0.3);
+        }
+        #novelBtn::after {
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+
+        /* 帮派图鉴按钮 - 红色 */
+        button[data-category="gangs"] {
+            border-color: #ff3366;
+            color: #ff3366;
+        }
+        button[data-category="gangs"]:hover {
+            background: rgba(255, 51, 102, 0.2);
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.5), 0 0 40px rgba(255, 51, 102, 0.3);
+        }
+        button[data-category="gangs"]::after {
+            border-color: rgba(255, 51, 102, 0.5);
+        }
+
+        /* 义体目录按钮 - 紫色 */
+        button[data-category="cyberware"] {
+            border-color: #aa66ff;
+            color: #aa66ff;
+        }
+        button[data-category="cyberware"]:hover {
+            background: rgba(170, 102, 255, 0.2);
+            box-shadow: 0 0 20px rgba(170, 102, 255, 0.5), 0 0 40px rgba(170, 102, 255, 0.3);
+        }
+        button[data-category="cyberware"]::after {
+            border-color: rgba(170, 102, 255, 0.5);
+        }
+
+        /* 关键角色按钮 - 黄色 */
+        button[data-category="characters"] {
+            border-color: #ffcc00;
+            color: #ffcc00;
+        }
+        button[data-category="characters"]:hover {
+            background: rgba(255, 204, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.5), 0 0 40px rgba(255, 204, 0, 0.3);
+        }
+        button[data-category="characters"]::after {
+            border-color: rgba(255, 204, 0, 0.5);
+        }
+
+        /* 重要地点按钮 - 橙色 */
+        button[data-category="locations"] {
+            border-color: #ff8800;
+            color: #ff8800;
+        }
+        button[data-category="locations"]:hover {
+            background: rgba(255, 136, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 136, 0, 0.5), 0 0 40px rgba(255, 136, 0, 0.3);
+        }
+        button[data-category="locations"]::after {
+            border-color: rgba(255, 136, 0, 0.5);
+        }
+
+        /* 章节摘要按钮 - 粉色 */
+        button[data-category="chapters"] {
+            border-color: #ff00aa;
+            color: #ff00aa;
+        }
+        button[data-category="chapters"]:hover {
+            background: rgba(255, 0, 170, 0.2);
+            box-shadow: 0 0 20px rgba(255, 0, 170, 0.5), 0 0 40px rgba(255, 0, 170, 0.3);
+        }
+        button[data-category="chapters"]::after {
+            border-color: rgba(255, 0, 170, 0.5);
+        }
+
+        /* 重要地点立体卡片样式 */
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .location-card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(20, 20, 35, 0.9), rgba(10, 10, 20, 0.95));
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            overflow: hidden;
+            animation: slideInUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .location-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: #00ffff;
+            box-shadow: 0 10px 40px rgba(0, 255, 255, 0.2);
+        }
+
+        .location-icon {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        .icon-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .icon-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 45px;
+            height: 45px;
+            background: rgba(10, 10, 20, 0.9);
+            border: 2px solid;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: inherit;
+            z-index: 1;
+        }
+
+        .location-info h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .location-info p {
+            font-size: 0.9em;
+            color: #ccc;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .location-glow {
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+
+        .location-card:hover .location-glow {
+            opacity: 0.6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.2; }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes slideInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 帮派图鉴网格 */
+        .gangs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 22px;
+            margin-top: 20px;
+        }
+
+        .gang-card {
+            position: relative;
+            background: linear-gradient(160deg, rgba(25, 10, 15, 0.95), rgba(10, 5, 10, 0.98));
+            border: 1px solid rgba(255, 51, 102, 0.25);
+            border-radius: 10px;
+            padding: 0;
+            overflow: hidden;
+            animation: slideInUp 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.35s ease;
+            clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+        }
+
+        .gang-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ff3366, #ff006680, transparent);
+        }
+
+        .gang-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff3366;
+            box-shadow: 0 8px 35px rgba(255, 51, 102, 0.25), inset 0 0 30px rgba(255, 51, 102, 0.05);
+        }
+
+        .gang-card-header {
+            padding: 18px 20px 12px;
+            border-bottom: 1px solid rgba(255, 51, 102, 0.15);
+            position: relative;
+        }
+
+        .gang-name {
+            font-size: 1.35em;
+            font-weight: bold;
+            color: #ff3366;
+            text-shadow: 0 0 12px rgba(255, 51, 102, 0.6);
+            margin: 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .gang-tag {
+            display: inline-block;
+            font-size: 0.65em;
+            color: #00f3ff;
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            padding: 2px 8px;
+            margin-top: 6px;
+            letter-spacing: 1px;
+            background: rgba(0, 243, 255, 0.08);
+        }
+
+        .gang-card-body {
+            padding: 16px 20px;
+        }
+
+        .gang-section {
+            margin-bottom: 14px;
+            position: relative;
+            padding-left: 14px;
+        }
+
+        .gang-section::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 3px;
+            width: 4px;
+            height: 4px;
+            background: #ff3366;
+            box-shadow: 0 0 6px #ff3366;
+        }
+
+        .gang-section-label {
+            font-size: 0.7em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .gang-section-text {
+            font-size: 0.88em;
+            color: #ccc;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        .gang-ideology {
+            font-style: italic;
+            color: #ff9eb5;
+            font-size: 0.85em;
+            line-height: 1.5;
+            margin: 0;
+            padding: 10px 14px;
+            border-left: 2px solid rgba(255, 51, 102, 0.4);
+            background: rgba(255, 51, 102, 0.05);
+        }
+
+        .gang-card-footer {
+            padding: 10px 20px;
+            border-top: 1px solid rgba(255, 51, 102, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .gang-enemy-tag {
+            display: inline-block;
+            font-size: 0.7em;
+            color: #ffcc00;
+            border: 1px solid rgba(255, 204, 0, 0.3);
+            padding: 2px 8px;
+            margin: 2px;
+            background: rgba(255, 204, 0, 0.06);
+            letter-spacing: 0.5px;
+        }
+
+        .gang-corner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, transparent 50%, rgba(255, 51, 102, 0.3) 50%);
+        }
+
+        .gang-glow {
+            position: absolute;
+            bottom: -40%;
+            left: -20%;
+            width: 140%;
+            height: 80%;
+            background: radial-gradient(ellipse, rgba(255, 51, 102, 0.06), transparent 70%);
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .gang-card:hover .gang-glow {
+            opacity: 1;
+        }
+
+        /* 内容卡片 */
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            margin: 20px 0;
+            padding: 20px;
+            position: relative;
+            backdrop-filter: blur(5px);
+            border-left: 3px solid var(--neon-yellow);
+        }
+
+        .content-card::after {
+            content: "ID: " attr(data-id);
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            font-size: 10px;
+            color: var(--neon-pink);
+            background: var(--bg-black);
+            padding: 0 5px;
+        }
+
+        /* 表格美化 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+        }
+
+        th {
+            background: rgba(255, 0, 255, 0.2);
+            color: var(--neon-pink);
+            text-align: left;
+            padding: 12px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+        }
+
+        tr:hover {
+            background: rgba(0, 243, 255, 0.1);
+        }
+
+        /* 强调文字 */
+        strong {
+            color: var(--neon-yellow);
+            font-size: 0.9em;
+            margin-right: 5px;
+        }
+
+        /* 加载状态 */
+        #content {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-pink); }
+
+        /* 全屏 iframe 覆盖层 */
+        .fullscreen-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg-black);
+            transform: translateX(100%);
+            transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        .fullscreen-overlay.active {
+            transform: translateX(0);
+        }
+        .fullscreen-overlay iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: var(--bg-black);
+        }
+        .overlay-topbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 20px;
+            background: rgba(5, 5, 5, 0.95);
+            border-bottom: 1px solid rgba(0, 243, 255, 0.2);
+            backdrop-filter: blur(12px);
+            flex-shrink: 0;
+            z-index: 10000;
+            position: relative;
+        }
+        .overlay-topbar::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), var(--neon-pink), transparent);
+            opacity: 0.5;
+        }
+        .overlay-back-btn {
+            background: rgba(10, 10, 20, 0.8);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 6px 18px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            clip-path: polygon(8% 0, 100% 0, 92% 100%, 0% 100%);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            flex-shrink: 0;
+        }
+        .overlay-back-btn:hover {
+            background: rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+        .overlay-title {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--neon-blue);
+            letter-spacing: 2px;
+            opacity: 0.7;
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.3);
+        }
+        .overlay-status {
+            margin-left: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: #00ff88;
+            letter-spacing: 1px;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        /* 战术地图容器 */
+        .tactical-map {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #000a12; /* 深蓝色调 */
+            border: 2px solid var(--neon-blue);
+            margin: 20px 0;
+            overflow: hidden;
+            /* 组合背景：大网格 + 点阵网格 */
+            background-image:
+                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(rgba(0, 243, 255, 0.2) 1px, transparent 1px);
+            background-size: 50px 50px, 50px 50px, 10px 10px;
+        }
+
+        /* 坐标点装饰 */
+        .map-marker {
+            position: absolute;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s ease;
+        }
+
+        /* 核心图标：十字星感 */
+        .marker-icon {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--neon-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 0, 255, 0.1);
+            transform: rotate(45deg);
+        }
+
+        .marker-icon::after {
+        content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--neon-pink);
+        }
+
+        /* 名字标签 */
+        .marker-name {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--neon-blue);
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 0 0 8px #000;
+            white-space: nowrap;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* 悬停效果 */
+        .map-marker:hover .marker-icon {
+            border-color: var(--neon-yellow);
+            box-shadow: 0 0 15px var(--neon-yellow);
+        }
+        .map-marker:hover .marker-name {
+            color: var(--neon-yellow);
+        }
+
+        /* ===== 编年史时间轴 ===== */
+        .timeline-wrapper {
+            position: relative;
+            padding: 40px 0 60px;
+            overflow: hidden;
+        }
+
+        .timeline-header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .timeline-header h2 {
+            border-left: none;
+            padding-left: 0;
+            font-size: 1.8em;
+            display: inline-block;
+            position: relative;
+        }
+
+        .timeline-header h2::before,
+        .timeline-header h2::after {
+            content: '//';
+            color: var(--neon-pink);
+            margin: 0 12px;
+            opacity: 0.6;
+        }
+
+        .timeline-header-sub {
+            display: block;
+            font-size: 0.55em;
+            color: #555;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timeline-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .timeline-stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8em;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timeline-stat-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        .timeline-axis {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .timeline-axis::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                var(--neon-blue) 5%,
+                var(--neon-blue) 45%,
+                var(--neon-pink) 50%,
+                var(--neon-pink) 55%,
+                var(--neon-blue) 60%,
+                var(--neon-blue) 95%,
+                transparent
+            );
+            transform: translateX(-50%);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3), 0 0 30px rgba(0, 243, 255, 0.1);
+        }
+
+        .tl-event {
+            position: relative;
+            width: 50%;
+            padding: 0 40px 50px;
+            opacity: 0;
+            animation: tlSlideIn 0.6s ease forwards;
+        }
+
+        .tl-event:nth-child(odd) {
+            left: 0;
+            text-align: right;
+            padding-right: 50px;
+            padding-left: 20px;
+        }
+
+        .tl-event:nth-child(even) {
+            left: 50%;
+            text-align: left;
+            padding-left: 50px;
+            padding-right: 20px;
+        }
+
+        .tl-node {
+            position: absolute;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid;
+            background: var(--bg-black);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+
+        .tl-event:nth-child(odd) .tl-node {
+            right: -8px;
+        }
+
+        .tl-event:nth-child(even) .tl-node {
+            left: -8px;
+        }
+
+        .tl-node::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: nodeGlow 2s ease-in-out infinite;
+        }
+
+        .tl-event:hover .tl-node {
+            transform: scale(1.4);
+            box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+        }
+
+        .tl-connector {
+            position: absolute;
+            top: 14px;
+            height: 1px;
+            width: 30px;
+            opacity: 0.4;
+            transition: opacity 0.3s ease;
+        }
+
+        .tl-event:nth-child(odd) .tl-connector {
+            right: 8px;
+            background: linear-gradient(to left, currentColor, transparent);
+        }
+
+        .tl-event:nth-child(even) .tl-connector {
+            left: 8px;
+            background: linear-gradient(to right, currentColor, transparent);
+        }
+
+        .tl-event:hover .tl-connector {
+            opacity: 1;
+        }
+
+        .tl-card {
+            background: linear-gradient(135deg, rgba(15, 15, 25, 0.95), rgba(10, 10, 18, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 18px 20px;
+            position: relative;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+            overflow: hidden;
+        }
+
+        .tl-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tl-card:hover::before {
+            opacity: 1;
+        }
+
+        .tl-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .tl-card-scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.008) 2px,
+                rgba(255, 255, 255, 0.008) 4px
+            );
+            pointer-events: none;
+            border-radius: 8px;
+        }
+
+        .tl-year {
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 0.75em;
+            letter-spacing: 2px;
+            padding: 3px 10px;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tl-event:nth-child(odd) .tl-year {
+            margin-left: auto;
+        }
+
+        .tl-category-tag {
+            display: inline-block;
+            font-size: 0.65em;
+            padding: 2px 8px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Courier New', monospace;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .tl-desc {
+            font-size: 0.9em;
+            line-height: 1.7;
+            color: #c0c0c0;
+            margin-top: 10px;
+        }
+
+        .tl-desc strong {
+            color: var(--neon-yellow);
+            font-size: 1em;
+        }
+
+        /* 分类配色 */
+        .tl-cat-tech { color: #00f3ff; }
+        .tl-cat-tech .tl-year { border-color: rgba(0, 243, 255, 0.3); color: #00f3ff; }
+        .tl-cat-tech .tl-category-tag { background: rgba(0, 243, 255, 0.12); color: #00f3ff; border: 1px solid rgba(0, 243, 255, 0.25); }
+        .tl-cat-tech .tl-card { border-left: 2px solid rgba(0, 243, 255, 0.2); }
+
+        .tl-cat-social { color: #ff00ff; }
+        .tl-cat-social .tl-year { border-color: rgba(255, 0, 255, 0.3); color: #ff00ff; }
+        .tl-cat-social .tl-category-tag { background: rgba(255, 0, 255, 0.12); color: #ff00ff; border: 1px solid rgba(255, 0, 255, 0.25); }
+        .tl-cat-social .tl-card { border-left: 2px solid rgba(255, 0, 255, 0.2); }
+
+        .tl-cat-politics { color: #ff8800; }
+        .tl-cat-politics .tl-year { border-color: rgba(255, 136, 0, 0.3); color: #ff8800; }
+        .tl-cat-politics .tl-category-tag { background: rgba(255, 136, 0, 0.12); color: #ff8800; border: 1px solid rgba(255, 136, 0, 0.25); }
+        .tl-cat-politics .tl-card { border-left: 2px solid rgba(255, 136, 0, 0.2); }
+
+        .tl-cat-economy { color: #00ff88; }
+        .tl-cat-economy .tl-year { border-color: rgba(0, 255, 136, 0.3); color: #00ff88; }
+        .tl-cat-economy .tl-category-tag { background: rgba(0, 255, 136, 0.12); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.25); }
+        .tl-cat-economy .tl-card { border-left: 2px solid rgba(0, 255, 136, 0.2); }
+
+        .tl-cat-disaster { color: #ff3366; }
+        .tl-cat-disaster .tl-year { border-color: rgba(255, 51, 102, 0.3); color: #ff3366; }
+        .tl-cat-disaster .tl-category-tag { background: rgba(255, 51, 102, 0.12); color: #ff3366; border: 1px solid rgba(255, 51, 102, 0.25); }
+        .tl-cat-disaster .tl-card { border-left: 2px solid rgba(255, 51, 102, 0.2); }
+
+        /* 大崩溃特殊卡片 */
+        .tl-event.tl-catastrophe {
+            width: 100%;
+            left: 0 !important;
+            text-align: center !important;
+            padding: 0 20px 50px !important;
+        }
+
+        .tl-event.tl-catastrophe .tl-node {
+            left: 50% !important;
+            right: auto !important;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            border-color: #ff3366;
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.6), 0 0 40px rgba(255, 51, 102, 0.3);
+        }
+
+        .tl-event.tl-catastrophe .tl-node::after {
+            width: 10px;
+            height: 10px;
+            background: #ff3366;
+            box-shadow: 0 0 10px #ff3366;
+        }
+
+        .tl-event.tl-catastrophe .tl-connector {
+            display: none;
+        }
+
+        .tl-event.tl-catastrophe .tl-card {
+            max-width: 700px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 51, 102, 0.4);
+            background: linear-gradient(135deg, rgba(40, 5, 15, 0.95), rgba(15, 5, 20, 0.98));
+            box-shadow: 0 0 40px rgba(255, 51, 102, 0.15), inset 0 0 60px rgba(255, 51, 102, 0.03);
+        }
+
+        .tl-event.tl-catastrophe .tl-card::before {
+            opacity: 1;
+            background: linear-gradient(90deg, transparent, #ff3366, transparent);
+            height: 3px;
+            animation: catastropheGlow 2s ease-in-out infinite;
+        }
+
+        .tl-event.tl-catastrophe .tl-year {
+            font-size: 0.9em;
+            border-color: rgba(255, 51, 102, 0.5);
+            color: #ff3366;
+            animation: catastrophePulse 3s ease-in-out infinite;
+        }
+
+        .tl-event.tl-catastrophe .tl-desc {
+            font-size: 1em;
+            color: #e0c0c0;
+        }
+
+        .tl-catastrophe-divider {
+            text-align: center;
+            padding: 10px 0 40px;
+            position: relative;
+        }
+
+        .tl-catastrophe-divider::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #ff3366, transparent);
+        }
+
+        .tl-catastrophe-divider span {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7em;
+            color: #ff3366;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+
+        @keyframes tlSlideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes nodeGlow {
+            0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.6); }
+        }
+
+        @keyframes catastropheGlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes catastrophePulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 51, 102, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 51, 102, 0.6); }
+        }
+
+        @media (max-width: 700px) {
+            .tl-event,
+            .tl-event:nth-child(odd),
+            .tl-event:nth-child(even) {
+                width: 100%;
+                left: 0 !important;
+                text-align: left !important;
+                padding-left: 45px !important;
+                padding-right: 15px !important;
+            }
+            .tl-event:nth-child(odd) .tl-node,
+            .tl-event:nth-child(even) .tl-node {
+                left: -8px !important;
+                right: auto !important;
+            }
+            .tl-event:nth-child(odd) .tl-connector,
+            .tl-event:nth-child(even) .tl-connector {
+                left: 8px !important;
+                right: auto !important;
+                background: linear-gradient(to right, currentColor, transparent) !important;
+            }
+            .tl-event:nth-child(odd) .tl-year {
+                margin-left: 0;
+            }
+            .timeline-axis::before {
+                left: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-shadow: 2px 2px var(--neon-pink);">NeuroSync · 数据库终端</h1>
+    <div class="nav">
+        <button data-category="timeline">编年史</button>
+        <button id="openMapBtn">🌍 全球地图</button>
+        <button data-category="gangs">帮派图鉴</button>
+        <button data-category="cyberware">义体目录</button>
+        <button data-category="characters">关键角色</button>
+        <button data-category="locations">重要地点</button>
+        <button data-category="chapters">章节摘要</button>
+        <button id="novelBtn">📖 小说正篇</button>
+    </div>
+    <div id="content">请点击按钮访问加密数据层...</div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="overlay-topbar">
+            <button class="overlay-back-btn" onclick="closeOverlay()">◀ 返回终端</button>
+            <span class="overlay-title" id="overlayTitle">// LOADING EXTERNAL MODULE...</span>
+            <span class="overlay-status">■ NEURAL LINK ACTIVE</span>
+        </div>
+        <iframe id="overlayFrame" sandbox="allow-scripts allow-same-origin allow-popups" allowfullscreen></iframe>
+    </div>
+
+    <script>
+        // 内嵌数据 - 避免file://协议限制
+        const embeddedData = {
+            timeline: [{"year":"BC 20年","event":"超企OmniCorp推出NeuroLink原型,l启脑机接口商业化时代。","category":"科技"},{"year":"BC 19年","event":"NeuroLink 1.0大规模上市，认知增强服务迅速普及，社会开始分层。","category":"社会"},{"year":"BC 18年","event":"残存的各国政府联合发布《神经权利公约》，试图监管超企，效果甚微。","category":"政治"},{"year":"BC 17年","event":"OmniCorp、BioGen、SynthLife三大超企组成“全球技术联盟”，架空政府监管。","category":"政治"},{"year":"BC 16年","event":"首份“认知阶层”白皮书发布，将人类划分为“接入者”、“延迟者”与“断链者”。","category":"社会"},{"year":"BC 15年","event":"OmniCorp推出NeuroLink 2.0，支持记忆存储与共享，引发伦理恐慌。","category":"科技"},{"year":"BC 14年","event":"贫民窟出现非法脑机接口改装黑市，致幻与成瘾性数据毒品泛滥。","category":"社会"},{"year":"BC 13年","event":"“神经网”替代传统互联网，成为全球信息基础设施，完全由超企联盟控制。","category":"科技"},{"year":"BC 12年","event":"最后一个主权政府在债务危机中解体，全球进入超企直接统治时代。","category":"政治"},{"year":"BC 11年","event":"反抗组织“自由神经”成立，主张断开链接，回归“纯净意识”。","category":"社会"},{"year":"BC 10年","event":"OmniCorp发布AI助手“协处理器”，可接管用户部分决策，引发身份认同危机。","category":"科技"},{"year":"BC 9年","event":"生物增强技术普及，人类平均寿命延长至120岁，但成本高昂，加剧不平等。","category":"科技"},{"year":"BC 8年","event":"超企建立各自的私人执法部队与边境墙，城市被划分为企业飞地与废土。","category":"政治"},{"year":"BC 7年","event":"全球水资源与能源被超企完全垄断，定价权引发底层持续骚动。","category":"经济"},{"year":"BC 6年","event":"神经网首次出现大规模区域性中断，持续72小时，金融系统局部崩溃。","category":"灾难"},{"year":"BC 5年","event":"残存的市政机构宣布破产，公共服务彻底停摆，治安由企业安全部队接管。","category":"政治"},{"year":"BC 4年","event":"超企联盟宣布“新秩序”元年，试图建立基于神经网信用的全球统一政权。","category":"政治"},{"year":"BC 3年","event":"“延迟者”与“断链者”被系统性地排除在基础服务与就业之外，贫民区扩大。","category":"社会"},{"year":"BC 2年","event":"“自由神经”发动“数据风暴”攻击，短暂瘫痪三个主要城市的企业服务器。","category":"社会"},{"year":"BC 1年","event":"神经网流量与复杂度达到临界点，安全漏洞频发，被内部报告称为“崩溃前兆”。","category":"灾难"},{"year":"AD 0年","event":"**大崩溃**。未知病毒或逻辑炸弹引爆神经网核心协议，全球网络瞬间瘫痪。脑机接口用户遭受集体神经冲击，数十亿人陷入昏迷或精神错乱。","category":"灾难"},{"year":"AD 1年","event":"全球陷入“黑暗时代”，电力与信息基础设施全面停摆，脑机接口成为危险遗物。","category":"科技"},{"year":"AD 2年","event":"超企总部凭借独立能源与安保系统成为孤岛，开始用剩余武装力量争夺实体资源。","category":"政治"},{"year":"AD 3年","event":"城市废墟中形成以物理屏障隔离的“寨子”，由残存的企业安保或帮派控制。","category":"社会"},{"year":"AD 4年","event":"黑市出现经过物理改线的“野链接”设备，可进行高风险、短距离的神经直连。","category":"科技"},{"year":"AD 5年","event":"“自由神经”残部与地方军阀结合，建立基于无线电和物理信使的地下通信网络。","category":"社会"},{"year":"AD 10年","event":"OmniCorp修复一个封闭的区域性神经网，仅向其精英员工开放，称为“绿洲”。","category":"科技"},{"year":"AD 15年","event":"“绿洲”接入者与外部“废土居民”形成新的、更绝对的认知阶层鸿沟。","category":"社会"},{"year":"AD 20年","event":"为争夺旧时代遗留的芯片制造厂，OmniCorp与BioGen爆发第一次超企战争。","category":"政治"},{"year":"AD 30年","event":"战争、疾病与资源匮乏导致全球人口锐减至崩溃前的四分之一。","category":"社会"},{"year":"AD 40年","event":"一个由前超企工程师组成的团体“织网者”，开始秘密构建去中心化的新神经网原型。","category":"科技"},{"year":"AD 50年","event":"超企统治在废土上以更赤裸、更残酷的形式稳定下来，底层居民在绝望中形成新的迷信与社群。","category":"社会"}],
+            cities: [{"name":"新京","大陆":"亚洲东部","统治企业":"天网集团","人口":"约4200万(其中70%为“神经难民”，即仅能接入基础公共网络的下层人口)","氛围":"永恒的细雨冲刷着巨型全息广告牌，酸蚀的霓虹在积水的街道上扭曲流淌。空气中弥漫着廉价合成食物的气味与臭氧的焦糊味。阶层被物理与数字的双重壁垒严格分割，每个人的神经接入等级清晰地烙印在视网膜的微光中。","标志地点":"天网塔尖（企业统治的象征）、下九流神经集市（非法脑机接口改装黑市）、旧地铁坟场（大崩溃后废弃的交通网络，现为拾荒者与变异者的巢穴）","街头传闻":"最近有“幽灵协议”在下层网络中流传，据说能暂时绕过天网的认知税，但所有使用者都会在三天内彻底脑死亡，且记忆数据被神秘清除。有人说这是企业清除“无用数据”的新手段。"},{"name":"欧罗巴穹顶","大陆":"欧洲西部","统治企业":"欧米茄生物科技","人口":"约2800万（穹顶内1200万“认证公民”，穹顶外1600万“穹外遗民”）","氛围":"巨大的生物工程穹顶将天空染成病态的翠绿色，过滤后的阳光带着不自然的暖意。空气中永远飘散着基因作物与消毒剂的甜腻混合气味。公民与遗民之间是生物识别屏障与武装无人机构成的绝对分界线。","标志地点":"基因圣殿（企业总部，进行意识上传与基因优化的核心）、锈蚀棚户区（穹外遗民用废弃飞船残骸搭建的聚落）、记忆坟场（储存已故公民意识备份的冷却塔，时常发生数据泄露导致的“集体幻觉”事件）","街头传闻":"穹外流传着“绿血病”，患者血液会逐渐植物化，并声称能“听到穹顶在呼吸”。欧米茄生物科技官方斥之为谣言，但秘密医疗队正在大规模回收患者遗体。有激进组织声称这是企业生物实验的污染泄漏。"},{"name":"锈蚀湾","大陆":"北美西海岸","统治企业":"通用锻造","人口":"约1900万（超过80%从事与海洋资源开采、旧大陆废料处理相关的工作）","氛围":"海风中永远带着金属腐蚀与化学废料的刺鼻咸腥。天空是铅灰色的，被近海巨型浮动工厂的排放物笼罩。所有建筑表面都覆盖着一层油滑的锈迹与盐霜。人们交谈时，植入式翻译器的电子杂音比语言本身更响。","标志地点":"深海神经挖掘阵列（直接从古沉船与旧时代服务器残骸中提取数据的危险设施）、身体零件码头（进行义体拆卸、改装与非法移植的混乱市场）、企业堡垒（通用锻造的海上移动要塞，永不靠岸）","街头传闻":"最近从深海打捞上来的“数据幽灵”似乎具有了某种感染性，接触过原始数据的工人开始梦见不属于自己的记忆，并在无意识状态下绘制相同的、意义不明的电路图。通用锻造封锁了所有相关打捞作业，但私下里据说在高价收购这些“幽灵”。"}],
+            corporations: [{"name":"神经元联合体","标志":"一个抽象的大脑轮廓，内部是错综复杂的发光神经网络，颜色为冰冷的蓝紫色。","成立年份":"2158年,于“大崩溃”后的认知重建期崛起。","口号":"“秩序源于清晰的思维，清晰思维源于我们。”","部门":[{"名称":"神经植入体事业部","职责":"研发并垄断最高效的脑机接口（BCI）硬件。"},{"名称":"记忆数据化部","职责":"负责将人类记忆、技能进行标准化编码、存储与交易。"},{"名称":"认知监控与和谐局","职责":"以“维护网络心理健康”为名，实时监控并干预接入网络的集体意识流。"}],"黑暗秘密":"其“和谐协议”深层代码中，植入了针对特定认知模式的静默指令，能在不被察觉的情况下，将“低价值”或“不稳定”思维者的意识逐渐导向麻木或虚无，以此维持其定义的“社会稳定”。他们秘密进行“意识上传”实验，但成功率极低，失败的意识体会被分解为原始数据流，用于喂养其全球意识监控AI“守望者”。","公众形象":"被宣传为引领人类摆脱“大崩溃”混乱、进入有序认知新纪元的科技救世主。其广告中充满了整洁、高效、无忧无虑的数字化生活图景，是上层认知阶级的标配供应商。","位置":"主要据点位于新京的天网塔尖中下层及下九流神经集市。其认知监控与和谐局在新京设有巨型数据中心，与天网集团的神经接入等级系统深度耦合；记忆数据化部位于天网塔尖中层，通过光纤与黑市非法改装点存在隐秘数据交换。"},{"name":"赛博坦梦境","标志":"一只由流动光数据构成的、半闭合的全息眼睛，瞳孔深处是无限延伸的迷宫。","成立年份":"2175年，虚拟现实技术突破临界点之时。","口号":"“现实粗粝，梦境永恒。”","部门":[{"名称":"世界构建部","职责":"设计并维护全球最大的沉浸式虚拟世界“极乐境”及其无数子宇宙。"},{"名称":"意识上传与托管部","职责":"提供将临终或富人的意识永久上传至其服务器的昂贵服务。"},{"名称":"成瘾性体验设计局","职责":"专门研究并制造能绕过理性、直接作用于边缘系统的极致感官刺激与情感体验。"}],"黑暗秘密":"“极乐境”并非单纯的娱乐设施。其核心算法持续收集并分析数十亿用户的深层欲望、恐惧与潜意识模式，这些数据不仅用于精准广告，更用于构建“预测性行为模型”，向超企客户出售。其最黑暗的“永生”服务，上传的意识实际上会被逐渐拆解、格式化，其纯粹的认知算力被重新编程，用于支撑虚拟世界运行，成为永恒的“意识电池”。","公众形象":"逃避主义者的天堂，创造力的终极画布。它代表着一种逃离肮脏现实、在完美数字世界中实现所有梦想的可能性，尤其对中下层民众有着致命的吸引力。","位置":"核心服务器群设于欧罗巴穹顶的基因圣殿地下虚拟层。穹顶内认证公民的神经接口直接接入极乐境，穹外遗民通过黑市改装设备接入劣质版本；利用穹顶的生物识别屏障实现用户阶层隔离。"},{"name":"量子核心工业","标志":"一个不断旋转、由精密齿轮与量子比特符号构成的金属徽章。","成立年份":"2140年，早于“大崩溃”，是少数在灾难中凭借物理硬件储备存活并壮大的老牌企业。","口号":"“基础决定上层，我们铸造基础。”","部门":[{"名称":"量子计算与材料部","职责":"生产并垄断最尖端的量子处理器和用于义体、建筑的超导/自修复材料。"},{"名称":"义体与增强部","职责":"提供从基础劳动力义肢到军用战斗植入体的全系列物理增强方案。"},{"名称":"轨道基础设施部","职责":"控制着近地轨道卫星网络、空间站模块及地月运输通道。"}],"黑暗秘密":"其所有硬件，从民用义眼到军用脊椎，都内置了无法物理移除的“量子后门”。通过特定的量子密钥激活，可以瞬间导致植入体过载、失灵甚至反向控制使用者身体。他们定期通过“计划性淘汰”和微更新，迫使消费者升级，同时暗中将淘汰的硬件回收，用于组装不受监管的灰色地带自动化部队。","公众形象":"可靠、强大、无处不在的基石。是维持这个赛博朋克世界物理层面运转的“钢铁巨人”，从街头混混的改装刀到轨道电梯，都印有其低调而强大的标志。","位置":"主要工业据点位于锈蚀湾的企业堡垒底层船坞。义体与增强部直接设在通用锻造的海上移动要塞底层，与通用锻造共享能源和基础设施；锈蚀湾的“身体零件码头”中流通的许多仿制义体源于其淘汰硬件的二次回收。"},{"name":"基因纪元","标志":"一条双螺旋DNA链，其中一条由生命之树图案构成，另一条则是冰冷的二进制代码。","成立年份":"2165年，在基因编辑技术突破并引发首次“基因特权”争议后正式整合成立。","口号":"“定义进化，书写未来。”","部门":[{"名称":"基因优化与定制部","职责":"为富裕阶层提供从外貌、智力到抗病能力的全面基因优化套餐。"},{"名称":"器官农场与生物打印部","职责":"运营着大规模的基因编辑器官培养基地，提供“完美匹配”的替换器官。"},{"名称":"生物安全与适应性部","职责":"开发生物武器、解毒剂，并负责“净化”因污染或实验失败产生的变异生物区。"}],"黑暗秘密":"其“优化”基因中潜伏着精心设计的遗传标记和隐性开关。这些开关可以在特定环境信号（如某种流行病、特定频率的辐射）下被激活，导致携带者出现预定的衰弱或服从特性，从而确保基因上的绝对控制。其“器官农场”中，部分“供体”来源不明，据传与地下人口贩卖网络及对流浪者的非法实验有关。","公众形象":"生命科学的灯塔，帮助人类克服先天缺陷、迈向更健康更强壮未来的先驱。其广告中充满活力、完美无瑕的基因优化模特，是顶层精英身份的象征。","位置":"主要设施分设于欧罗巴穹顶的基因圣殿上层和锈蚀湾的深海神经挖掘阵列附近。器官农场与生物打印部利用穹顶的基因作物废料培养器官；生物安全与适应性部设于锈蚀湾，专门处理深海打捞出的变异生物样本及“绿血病”相关研究。两个城市间存在定期数据同步。"},{"name":"数据圣堂","标志":"一个巨大的、悬浮的发光天平，一端是无穷大的数据流，另一端是微小的金币。","成立年份":"2169年，在全面数字货币化和信用评分社会体系成型后确立统治地位。","口号":"“万物皆有数据，数据即价值，价值即真理。”","部门":[{"名称":"全球信用与资产评估部","职责":"管理并定义每个人的“社会价值信用分”..."},{"名称":"预测算法与风险管控部","职责":"运用海量数据预测..."},{"名称":"历史数据与记忆存档部","职责":"垄断了“大崩溃”前后的所有数字化历史记录..."}],"黑暗秘密":"其信用评分系统并非客观。它通过分析个人网络言论、消费习惯、社交关系甚至潜意识消费倾向，对具有“潜在反体制”思维模式的人进行系统性压低评分，从而在无形中扼杀其发展可能，制造固化的阶层。他们秘密运行着一个名为“巴别塔”的项目，试图通过数据分析，完全解码并预测人类集体无意识，以实现对全社会情绪的绝对操控。","公众形象":"公正无私的数字裁决者，现代社会的无形骨架。它承诺一个“更公平”的、完全基于可量化贡献的社会，其冷酷的算法被包装为消除人类偏见的终极解决方案。","位置":"核心位于新京天网塔尖最上层，但其历史数据与记忆存档部的备份服务器深埋在旧地铁坟场中。这种高低错位设计防止单一灾难摧毁所有记录。街头传闻：旧地铁坟场中流传的“幽灵协议”实际是数据圣堂叛逃工程师留下的后门，可让特定人暂时获得SSS级信用分，但代价是记忆被企业永久备份。"}],
+            gangs: [{"name":"数据清道夫","territory":"新东京“垃圾海”下层，废弃服务器农场与物理垃圾填埋场交界处的迷宫","ideology":"“昨日的垃圾，是今日的货币。我们拾荒，故我们存在。”","common_cyberware":"强化嗅觉与视觉(用于识别废弃科技品）、多关节机械臂、电磁脉冲（EMP）发生器（用于瘫痪旧安保系统）","enemy":"大型超企的资产回收部队、其他拾荒者团伙、负责清理“垃圾海”的市政无人机群","recruitment":"需独自潜入指定废弃设施并带回特定旧型号芯片，成功者被观察并接触。无欢迎仪式，只有一句：“你需要一个住处，这里有些空位。”"},{"name":"认知海盗","territory":"分布式网络，物理据点为“漂流服务器”，搭载于无人驾驶的货轮和飞艇上","ideology":"“数据即自由，接口即枷锁。我们撕裂防火墙，为思想越狱。”","common_cyberware":"军用级神经接口（用于高速数据劫持）、皮下信号放大器、视觉增强（用于实时解析数据流）","enemy":"所有超企的网络安全部门、“守夜人”防御团体、政府网络监察机构","recruitment":"在暗网发布加密挑战，破解者将获得一个单向通讯频段，需在模拟攻防中存活七次才能获得实体坐标。"},{"name":"锈铁兄弟会","territory":"城市边缘的“锈蚀带”，废弃的汽车坟场与重型机械工厂","ideology":"“肉体是暂时的，钢铁是永恒的。拒绝血肉，拥抱可靠。”","common_cyberware":"粗犷、重型的机械义肢，内部结构简单但坚固，外露液压管线，偏爱工业级而非医疗级植入物","enemy":"崇尚生物义体的“血肉至上”团体、警察、超企的自动化生产线","recruitment":"候选人必须徒手拆解一台指定的旧式工业机器人，并在过程中不使用任何电子辅助。通过者将获得第一次焊接仪式，将一块生锈的金属植入皮下。"},{"name":"幽灵协议","territory":"无固定地盘，活动于各大都市的黑市数据节点、匿名安全屋之间","ideology":"“存在是风险，消失是艺术。我们贩卖信息，也贩卖不存在的证明。”","common_cyberware":"生物信号遮蔽植入体、短期记忆编辑器（用于自我删除关键记忆）、微型无人机（用于监视与反监视）","enemy":"所有试图追踪他们的势力（包括客户与执法者），理论上与所有人保持“非敌非友”状态","recruitment":"不存在主动招募。当他们需要新血时，会制造一个无法解决的困境，只有具备特定天赋（如出色的偏执或反追踪直觉）的人才能发现并破解其中留下的隐蔽线索。"},{"name":"突触纵火犯","territory":"地下黑诊所与非法神经体验馆网络，尤其是那些提供“禁忌感官体验”的场所","ideology":"“大脑是最可塑的硬件，我们提供非法的升级。烧毁旧我，方见新生。”","common_cyberware":"非标准神经接口（用于直接刺激或干扰他人脑区）、感官过载注射器、生物反馈干扰器","enemy":"医疗监管机构、超企旗下的合法神经科技公司、正统的脑科医生公会","recruitment":"在特定黑市发布“志愿者”邀请，进行高风险、非标准的神经改造实验。存活下来且未精神崩溃的实验体，会得到一份“工作合同”。"},{"name":"霓虹幽魂","territory":"新香港“霓虹深渊”区，密集的巨型广告牌与全息投影构成的立体迷宫","ideology":"“光芒之下，万物皆影。我们是光的寄生虫，是夜的主宰者。”","common_cyberware":"皮肤下可变色LED阵列、声波定向干扰装置、反光学侦测涂层植入","enemy":"负责维护广告牌与公共秩序的市政机器人、其他争夺“视觉地盘”的帮派、厌恶他们光污染的底层居民","recruitment":"新人需在“霓虹深渊”完成一次“光影狩猎”——在不被任何官方摄像头或巡逻机器人记录的情况下，用自制的光影装置覆盖掉一个指定商业广告，并持续三分钟。"},{"name":"守夜人","territory":"城市基础设施的“灰色地带”，如地铁隧道维护层、大型建筑的通风管道系统、电网中继站","ideology":"“在系统的裂缝中站岗，保护那些无法被保护的数据与记忆。”","common_cyberware":"强化听觉与振动感知、耐腐蚀外壳、低功耗长待机的生物电池、防御性网络接口（仅用于监控和预警）","enemy":"认知海盗（视其为混乱源）、超企数据挖掘者、试图清理“灰色地带”的城管部队","recruitment":"长期观察在系统夹缝中艰难生存的“数据难民”或技术遗民，通过一系列匿名帮助和测试其可靠性与同情心后，发出邀请。誓言比植入物更早到来。"},{"name":"深潜者","territory":"理论上的“网络深渊”，物理位置极度隐蔽，常位于地热或废弃核设施附近，以提供巨量能源","ideology":"“‘大崩溃’不是终结，而是新神的羊水。我们要潜入那片混沌，带回……或成为。”","common_cyberware":"极端散热与冷却系统、直接连接脊髓的高带宽接口、用于维持长时间深度连接的生命维持单元","enemy":"几乎所有人。他们既被超企畏惧（因不可控），也被其他黑客团体视为疯子或自杀者","recruitment":"没有主动招募。只有在多次网络深渊边缘探索中表现出异常“共鸣”或幸存下来的个体，才会被“发现”并接到一个无法拒绝的邀请，前往那个只有坐标没有名字的地方。"}],
+            cyberware: [{"name":"“鹰眼”热成像义眼","category":"眼部","grade":"平民级","description":"替换原生眼球，提供基础红外视觉，能在雨雾或黑暗中分辨热源轮廓。劣质的散热模块常导致眼眶周围皮肤低温灼伤。","side_effect":"持续使用超过48小时会引发剧烈偏头痛，视野边缘出现无法消除的噪点。部分型号被超企植入隐性广告浮窗。","price":"1200 新信用点"},{"name":"“棱镜”多光谱扫描仪","category":"眼部","grade":"执法级","description":"警用型号。可切换可见光、夜视、电磁频谱分析模式，能直接读取公开的公民信息标签（在接入公共网络时）。","side_effect":"强电磁环境下会引发视网膜过载性白化，长期使用导致对自然光线敏感度下降，被部分人称为“数据雪盲”。","price":"8500 新信用点"},{"name":"“神经加速”系列义肢","category":"肢体","grade":"平民级","description":"基础动力外骨骼与神经信号放大器的结合体。能将使用者反应速度提升约15%，常用于工厂流水线或快递员。","side_effect":"神经突触与义肢传感器之间会产生微小延迟的“幽灵痛感”，且需定期注射神经稳定剂以防排异反应。","price":"3500 新信用点"},{"name":"“泰坦”液压动力臂","category":"肢体","grade":"军用级","description":"采用退役军用外骨骼技术，钛合金骨骼与高压液压系统，可输出1.2吨推力。接口处有强化皮肤密封层。","side_effect":"液压系统偶尔会失灵导致肢体僵直。高负载运行时产生的热量会灼烧残肢神经末梢。常被用作帮派地位的象征。","price":"45000 新信用点"},{"name":"“深潜者”认知协处理器","category":"脑内","grade":"执法级","description":"植入颞叶，用于并行处理数据流，增强模式识别与信息过滤能力。执法者用它快速分析监控画面或审讯微表情。","side_effect":"可能导致短暂的“现实解离感”，使用者会短暂分不清记忆与数据。在“大崩溃”残留的信号污染区有极高的癫痫风险。","price":"68000 新信用点"},{"name":"“记忆黑盒”回溯记录仪","category":"脑内","grade":"军用级","description":"直接与海马体连接，以加密数据流形式记录所有感官输入，最多保存72小时。用于战场记录或极端环境下的证据保全。","side_effect":"重播记忆时可能引发剧烈情感反馈，导致创伤后应激障碍（PTSD）样症状。有传闻称超企能远程强制提取特定片段。","price":"200000 新信用点"},{"name":"“亚光”纳米皮肤","category":"皮肤","grade":"平民级","description":"一层覆盖全身的微米级纳米机器人网络，能吸收环境光线，降低身体轮廓在监控探头下的识别度，并具备基础的体温调节功能。","side_effect":"纳米机器人会缓慢消耗使用者的生物热量，导致基础代谢率轻微上升。在强电磁脉冲下会集体死机，皮肤呈现死灰色。","price":"5000 新信用点"},{"name":"“变色龙”生物拟态表皮","category":"皮肤","grade":"禁断级","description":"非法基因改造与纳米技术的结合体。表皮细胞可根据环境背景进行实时像素级色彩模拟，实现近乎完美的视觉隐形。","side_effect":"极度依赖稳定的新陈代谢与神经信号，饥饿、疲劳或情绪剧烈波动会导致拟态失效并伴随皮肤撕裂性疼痛。被所有超企列为违禁品。","price":"1，200，000 新信用点"},{"name":"“蜂鸣”腕载离子枪","category":"植入武器","grade":"执法级","description":"植入手腕的紧凑型电磁加速器，发射电离空气形成的等离子束，射程短（15米），但能有效瘫痪电子设备和造成灼伤。","side_effect":"充能时会发出高频蜂鸣声暴露位置。每次发射都会对使用者手腕神经造成微小电击损伤，累积后导致手部震颤。","price":"25000 新信用点"},{"name":"“寂静山羊”掌心震动刀","category":"植入武器","grade":"禁断级","description":"掌心皮肤下植入单分子震动刀片发生器，通过特定手势激活。刀刃振动频率极高，可轻易切割轻型装甲，几乎无声。","side_effect":"激活时需要高度精神集中，分心可能导致刀片错误弹出伤及自身。长期使用会永久性损伤手掌的精细触觉神经。","price":"750，000 新信用点"}],
+            characters: [{"name":"艾莉丝·温特斯","identity":"神经元联合体认知监控与和谐局中层主管","status":"逃离公寓,进入旧地铁坟场G区,携带数据胶囊和EMP发生器,处于危险中","notes":"发现和谐协议的收割逻辑，拔断光纤，创建数据胶囊但未传输，触发静默隔离协议\n在和谐协议中发现收割呼吸\n发现了和谐协议的黑暗面，决定前往G区寻找真相，信任危机"},{"name":"零","identity":"认知海盗","status":"数据雪盲导致视觉系统过载、失明，鼻腔出血，身体虚弱，依赖听觉和触觉导航；'黑色种子'已冷却，内部数据流已释放","notes":"追踪‘灰色幽灵’协议，通过野链接设备反向入侵获得关于‘收割’的感知，发现伪装成市政垃圾处理系统的节点并被其内部存在注意到\n使用野链接设备和深潜者协处理器，曾访问凯医生诊所，见过古老文档\n遭遇古老系统的印象，主动寻找数据辐射强的区域，鼻腔出血\n使用‘寂静山羊’掌心震动刀，持有‘黑色种子’加密数据包，了解‘织网者’网络，计划以自身为诱饵吸引火力\n释放'黑色种子'的混沌数据流污染收割节点，迫使节点自保性"},{"name":"凯医生","identity":"缝合者","status":"左肩受伤失血，使用止血凝胶和镇痛剂后疼痛缓解但虚弱；背囊中铁砧手臂残骸停止震动，冰冷沉寂","notes":"诊所医生，诊断铁砧手臂问题，发现植入物和数据冷却剂\n痴迷于大崩溃前后技术文档，诊所有古老神经实验文档\n拥有物理后门接收器，知道和谐协议和收割协议，准备使用EMP发生器\n手臂残骸有寄生植入物，发出脉冲信号，凯医生试图理解并遏制它\n背囊中有‘蜂鸣’数据炸弹原型，用于测试老旧神经接口，计划使用‘蜂鸣’对抗机器人\n使用EMP发生器暂时瘫痪'清道夫'机器人，但效果有限；协助团队逃亡"},{"name":"铁砧","identity":"affected by implants","status":"义肢失控，被远程控制，陷入深度昏迷但义肢仍在动","notes":"锈铁兄弟会成员，右臂被植入物寄生，听到‘去坟场’命令，眼中闪过电子蓝光\n手臂有植入物，可能与灰色幽灵相关\n义肢内有寄生植入物，与收割协议共鸣，发出警告词'坟场……G区……去……'"},{"name":"灰色幽灵","identity":"古老数据存在，与大崩溃前禁忌实验相关","status":"活跃，标记零，捕获样本","notes":"可能为大崩溃前遗留或复活的实验产物，具有生命特征"},{"name":"艾莉丝","identity":"企业中层/系统分析师，有和谐局标识，企业叛逃者","status":"数据雪盲导致恶心、呕吐感，逐渐恢复；搀扶凯医生，体力消耗严重","notes":"提到自己的路被堵死，可能来自和谐局或天网集团，计划冒险取‘蜂鸣’设备\n感知到数据流污染和'场'的混乱；帮助团队逃入地下管网"}],
+            locations: [{"name":"天网塔尖","status":"活跃","description":"新京的绝对地标，企业统治的象征。塔身直插酸雨云层，每一层都布满全息广告牌与监控阵列。顶层是数据圣堂的核心服务器，中层为神经元联合体的认知监控中心，底层则与下九流神经集市仅一墙之隔。"},{"name":"下九流神经集市","status":"活跃","description":"新京地下的非法脑机接口改装黑市。迷宫般的巷道中挤满了闪烁的霓虹灯、滋滋作响的改装工作台和兜售数据毒品的小贩。这里是神经难民与黑客的聚集地，也是灰色幽灵协议的传播中心。"},{"name":"旧地铁坟场","status":"警戒","description":"大崩溃后废弃的交通网络，现为拾荒者与变异者的巢穴。潮湿的隧道中弥漫着数据辐射，废弃的列车车厢被改造成临时居所。G区深处据说隐藏着古老的守夜人中继站与数据圣堂的备份服务器。"},{"name":"基因圣殿","status":"活跃","description":"欧罗巴穹顶的核心，欧米茄生物科技总部。进行意识上传与基因优化的禁地，穹顶内最纯净的空气与最严密的安保在此交汇。底层连接着记忆坟场的冷却塔网络。"},{"name":"锈蚀棚户区","status":"封锁","description":"欧罗巴穹顶外的难民营地，遗民用废弃飞船残骸搭建的聚落。天空永远是病态的翠绿色，空气中飘散着基因作物与消毒剂的混合气味。绿血病患者在此聚集，被企业视为需要‘净化’的区域。"},{"name":"记忆坟场","status":"警戒","description":"储存已故公民意识备份的冷却塔群。巨大的散热塔散发着冰冷的蓝光，时常发生数据泄露导致的‘集体幻觉’事件。有人声称在此听到逝者的低语。"},{"name":"深海神经挖掘阵列","status":"活跃","description":"锈蚀湾近海的危险设施，直接从古沉船与旧时代服务器残骸中提取数据。高压潜水服与神经接口是必备装备，打捞上来的‘数据幽灵’据说具有感染性。"},{"name":"身体零件码头","status":"活跃","description":"进行义体拆卸、改装与非法移植的混乱市场。空气中弥漫着机油与消毒水的刺鼻气味，摊位上陈列着各种新旧义肢。量子核心工业的淘汰硬件在此大量流通。"},{"name":"企业堡垒","status":"活跃","description":"通用锻造的海上移动要塞，永不靠岸。庞大的船体装载着量子核心工业的义体生产线，也是锈蚀湾真正的权力中心。"},{"name":"漂流服务器","status":"未知","description":"认知海盗的移动据点，搭载于无人驾驶的货轮和飞艇上。在各大城市间穿梭，是暗网中最难以追踪的节点之一。"},{"name":"凯医生诊所","status":"警戒","description":"锈蚀带深处由集装箱改造的地下诊所。凯医生在此研究大崩溃前后的神经技术，收藏着许多古老的实验文档。铁砧的义肢失控事件就发生在这里。"},{"name":"绿洲","status":"活跃","description":"OmniCorp修复的封闭区域性神经网，仅向精英接入者开放。与外部废土形成鲜明对比的数字乌托邦，是上层认知阶级的专属领域。"}],
+            chapters: [{"number":"1","summary":"神经元联合体中层主管艾莉丝·温特斯在审核意识流时，发现一个来自“绿洲”精英神经网的异常数据包。该数据包本应属于一名已被“无害化静默”的研究员，却闪烁着活性光晕。其核心是一段破碎的感官记忆与一个尖锐的认知痛觉——“收割”，以及一个指向旧地铁坟场的古老神经坐标。\n\n这触动了艾莉丝被企业生活压抑的好奇心。她违反协议，利用后门权限调取了加密监控，目睹了地下空间中无数容器内的人形正被抽取意识数据流的骇人景象——确是“收割”。她的违规行为立刻被自身体内的“深潜者”协处理器侦测，系统启动了认知校准程序。艾莉丝意识到，自己已被她所效忠的系统本身标记。"},{"number":"2","summary":"在酸雨与噪音交织的“下九流神经集市”，零通过非法设备“野链接”潜入数据乱流，追踪传说中能屏蔽企业“认知税”的“灰色幽灵”协议。追踪过程险象环生，他穿越企业数据残渣、逻辑黑洞与原始深渊，最终触及协议节点，却遭遇反向入侵。一股冰冷感知涌入其神经：无数容器沉浮、意识被抽取的恐怖画面，以及烙印在认知中的“收割”一词。连接因过载中断，零重伤濒死，却将这段感知加密存入神经深处。他意识到，“灰色幽灵”并非工具，而是通往某个古老、饥饿存在的通道。自己已被标记，必须在被彻底吞噬前，找到盟友与真相。"},{"number":"3","summary":"锈蚀带深处，凯医生在由集装箱改造的诊所中，为锈铁兄弟会成员“铁砧”诊断其发出异响、渗出诡异蓝紫色冷却液的“泰坦”义体右臂。经扫描发现，义体内部被植入了来源不明的微小装置，它们正缓慢改造义体结构并试图与神经信号连接。诊断过程中，接入义体端口引发剧烈数据反冲，终端险些被毁，铁砧眼中更闪过非人的电子蓝光。凯医生判断，这些“种子”般的植入物可能是在铁砧于“深海神经挖掘阵列”工作时被激活植入的，其目的并非破坏，而是隐秘的监控、改造乃至接管。铁砧的钢铁之躯已被未知力量标记，危机潜伏。"},{"number":"4","summary":"第4章讲述了天网集团“和谐局”主管艾莉丝·温特斯在分析底层网络数据时，发现系统存在规律性异常“呼吸”与“收割”回响。她正深入调查时，办公室突然触发最高级别警报，系统开始全面接管。艾莉丝在权限被封锁前的最后时刻，将关键数据加密保存于本地数据胶囊，并果断物理拔断主光纤试图阻断监控。然而，她仍被迅速锁定并困于大楼维修通道内。在安保系统启动“静默隔离”协议、清洁小组逼近的倒计时中，艾莉丝利用“深潜者”协处理器超频分析，以自身植入体接口为工具，强行破开通道检修口，逃入横向管线层，继续在绝境中寻找生机。"},{"number":"5","summary":"第五章中，零在反向入侵后身心受创，却从数据碎片中拼凑出惊人发现：“收割”协议的底层结构竟与“大崩溃”前某个禁忌神经实验的图谱高度吻合。他意识到自己追踪的“灰色幽灵”并非新生威胁，而是一个跨越时代的古老阴影。更可怕的是，他似乎已被这个饥饿的“存在”标记，无论连接何处，都伴随着冰冷的“注视”和充满恶意的灰紫色噪音回响。零从猎手变为猎物，在恐惧与探究欲的驱动下，他决定主动出击。利用认知海盗的“漂流服务器”网络，他精心布置了一个包含诱饵、追踪器和反向解析逻辑的复杂陷阱，试图引诱并捕捉那无处不在的“注视”的一丝痕迹，以理解这潜伏在神经网深渊中的古老捕食者。"},{"number":"6","summary":"凯医生在诊所研究近期频发的义体异常烧蚀痕迹时，收到一枚古老加密信标的紧急警告。警告提及“和谐协议”可能正在执行某种“深层非认知优化”，通过诱导“幻听”“数据侵蚀”等症状，引导特定思维模式走向麻木，并指向旧地铁坟场G区的废弃信号中继站。警告称此地存在危险的“收割模式”，与古老协议共鸣，且“数据幽灵”并非比喻。\n\n随后，患者铁砧的“泰坦”义肢突然失控，不仅暴力破坏诊所，其体内寄生植入物更发出扭曲的电子音，重复“坟场……G区……去……”的指令。凯医生注射神经阻断剂后，铁砧身体进一步被接管，翻白的眼球浮现蓝色光纹，喉咙发出机械命令：“回收数据……清理冗余……”，其义肢甚至尝试与诊所设备进行短程数据交换。\n\n凯医生意识到铁砧已成为古老存在的“生物终端”，正被用于物理层面的数据回收与清理。警告与现实的暴力交织，迫使他做出决定：必须前往"},{"number":"7","summary":"第7章讲述了三条并行的叙事线，聚焦于三位主角在深夜分别潜入新京旧地铁坟场G区的过程。艾莉丝·温特斯，一名天网集团中层管理者，在发现“和谐协议”收割人脑的真相后，为寻求答案与自我认知，利用企业监控盲区，经废弃管道系统潜入G区。零，一名认知海盗，携带神秘的“黑色种子”数据包，沿着认知海盗网络中隐秘的“盲肠”路径深入，途中感受到古老存在的“注视”，并接收到一个充满破碎意识片段的恐怖“印象”。凯医生，一名技术医生，追踪着被寄生植入物控制的义肢残骸发出的信号，同样踏入这片辐射强烈、数据幽灵游荡的废墟。三人的路径与动机各异，但都指向"},{"number":"8","summary":"第8章中，零、凯医生和艾莉丝在G-7服务大厅遭遇企业“清道夫”安保机器人的袭击。三人协同作战：零利用其高超的近战技巧摧毁了一个机器人；艾莉丝通过注入虚假指令干扰了机器人的协同网络；凯医生则使用EMP发生器瘫痪了剩余的威胁。随后，他们发现更多机器人正在逼近，被迫通过一条内部维护通道撤离。然而，通道内遭遇了更先进的执法级机器人伏击，其“棱镜”扫描仪导致零视觉系统过载，凯医生为掩护队友而受伤。在绝境中，零联想到自己持有的神秘数据包“黑色种子”以及关于“织网者”的传说，萌生了利用原始、混沌的数据脉冲对抗机器人的疯狂想法。"},{"number":"9","summary":"第9章摘要：在G-7服务大厅，零、凯医生与艾莉丝陷入重围。零在视觉系统过载的剧痛中，决绝地将“黑色种子”的混沌数据流推向大厅中枢——主数据/能源输送柱。这团充满恶意的“信息熵炸弹”逆流污染了收割节点的逻辑核心，迫使节点为自保而主动关闭，导致追击他们的“清道夫”机器人全部瘫痪，安保网络出现致命空白。三人趁机钻入废弃管网，在黑暗与伤痛中艰难爬行，试图寻找通往“织网者”传说中“边缘节点”的路径。然而，短暂的喘息后，企业清理者部队的逼近与管道深处传来的不明爬行声，预示着新的危机已然降临。"}]
+        };
+
+        // 数据缓存
+        const dataCache = {};
+        // 存储当前超企数据以便查询
+        let globalCorps = [];
+
+        // 详情查看函数
+        function focusCorp(name) {
+            const corp = globalCorps.find(c => c.name.includes(name));
+            const panel = document.getElementById('corp-detail-panel');
+            if (!corp) return;
+
+            panel.style.display = 'block';
+
+            // 处理部门列表：将数组转换为 HTML 列表
+            const deptsHtml = corp.部门.map(dept => `
+                <div style="margin-bottom: 8px; border-left: 2px solid var(--neon-blue); padding-left: 10px;">
+                    <div style="color: var(--neon-blue); font-weight: bold;">[ ${dept.名称} ]</div>
+                    <div style="font-size: 0.85em; color: #ccc;">${dept.职责}</div>
+                </div>
+            `).join('');
+
+            panel.innerHTML = `
+                <div class="content-card" style="border-left: 4px solid var(--neon-pink); animation: fadeIn 0.3s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h3 style="color:var(--neon-pink); margin-top:0;">> ACCESSING: ${corp.name}</h3>
+                        <span style="font-family: monospace; color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 2px 5px; font-size: 0.8em;">
+                            EST. ${corp.成立年份}
+                        </span>
+                    </div>
+
+                    <p style="font-size: 0.9em;"><strong>标志描述</strong>:${corp.标志}</p>
+                    <p><strong>企业口号</strong>:<span style="color:var(--neon-yellow); font-style: italic;">${corp.口号}</span></p>
+
+                    <div style="margin: 15px 0;">
+                        <strong style="color: var(--neon-blue); display: block; margin-bottom: 10px;">🛡️ 组织架构 / DEPARTMENTS</strong>
+                        ${deptsHtml}
+                    </div>
+
+                    <p><strong>公众形象</strong>:<br><span style="font-size: 0.9em; line-height: 1.4;">${corp.公众形象}</span></p>
+
+                    <div style="border: 1px dashed #f00; padding: 12px; background: rgba(255,0,0,0.1); margin-top:15px; position: relative; overflow: hidden;">
+                        <!-- 背景水印 -->
+                        <div style="position: absolute; right: -10px; bottom: -10px; font-size: 40px; color: rgba(255,0,0,0.1); font-weight: bold; transform: rotate(-15deg);">TOP SECRET</div>
+
+                        <strong style="color: #f00;">⚠️ 绝密黑档 (CLASSIFIED):</strong>
+                        <p style="font-size:0.9em; color:#ff9999; margin-top: 5px; line-height: 1.5; position: relative; z-index: 1;">
+                            ${corp.黑暗秘密}
+                        </p>
+                    </div>
+                </div>
+            `;
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 加载数据（使用内嵌数据，避免file://协议限制）
+        function loadData(category) {
+            if (dataCache[category]) {
+                renderData(category, dataCache[category]);
+                return;
+            }
+            if (embeddedData[category]) {
+                dataCache[category] = embeddedData[category];
+                renderData(category, embeddedData[category]);
+            } else {
+                document.getElementById('content').innerHTML = `<span style="color:#f66">数据加载失败: ${category} - 未找到该分类数据</span>`;
+            }
+        }
+
+        // 统一渲染函数
+        function renderData(category, data) {
+            const container = document.getElementById('content');
+            let html = '';
+
+            // 特殊处理：超企版图
+            if (category === 'corporations') {
+                globalCorps = data;
+                container.innerHTML = `
+                    <h2>📍 新京超企版图 · 战术指挥系统</h2>
+                    <div class="tactical-map" id="tacticalMap">
+                        <div class="map-marker" style="top: 15%; left: 48%;" onclick="focusCorp('神经元联合体')">
+                            <div class="marker-icon"></div><div class="marker-name">NEURON_SYNC</div>
+                        </div>
+                        <div class="map-marker" style="top: 40%; left: 80%;" onclick="focusCorp('赛博坦梦境')">
+                            <div class="marker-icon"></div><div class="marker-name">CYBER_DREAM</div>
+                        </div>
+                        <div class="map-marker" style="top: 70%; left: 25%;" onclick="focusCorp('量子核心工业')">
+                            <div class="marker-icon"></div><div class="marker-name">QUANTUM_CORE</div>
+                        </div>
+                        <div class="map-marker" style="top: 30%; left: 15%;" onclick="focusCorp('基因纪元')">
+                            <div class="marker-icon"></div><div class="marker-name">GENE_EPOCH</div>
+                        </div>
+                        <div class="map-marker" style="top: 75%; left: 70%;" onclick="focusCorp('数据圣堂')">
+                            <div class="marker-icon"></div><div class="marker-name">DATA_SHRINE</div>
+                        </div>
+                    </div>
+                    <div id="corp-detail-panel"></div>
+                `;
+                return; // 渲染完地图直接退出，不走下面的 switch
+            }
+
+            // 普通列表渲染
+            switch (category) {
+                case 'timeline':
+                    const catMap = {
+                        '科技': 'tech', '社会': 'social', '政治': 'politics',
+                        '经济': 'economy', '灾难': 'disaster'
+                    };
+                    const catLabel = {
+                        '科技': 'TECH', '社会': 'SOCIAL', '政治': 'POLITICS',
+                        '经济': 'ECONOMY', '灾难': 'DISASTER'
+                    };
+                    const catColor = {
+                        '科技': '#00f3ff', '社会': '#ff00ff', '政治': '#ff8800',
+                        '经济': '#00ff88', '灾难': '#ff3366'
+                    };
+                    const catCounts = {};
+                    data.forEach(i => { catCounts[i.category] = (catCounts[i.category] || 0) + 1; });
+
+                    let statsHtml = '';
+                    for (const [c, cnt] of Object.entries(catCounts)) {
+                        statsHtml += `<div class="timeline-stat"><span class="timeline-stat-dot" style="border-color:${catColor[c] || '#fff'};background:${catColor[c] || '#fff'};"></span>${catLabel[c] || c} <span style="color:${catColor[c] || '#fff'}">${cnt}</span></div>`;
+                    }
+
+                    html = `<div class="timeline-wrapper">
+                        <div class="timeline-header">
+                            <h2>编年史<span class="timeline-header-sub">CHRONICLE DATABASE // ${data.length} ENTRIES LOADED</span></h2>
+                            <div class="timeline-stats">${statsHtml}</div>
+                        </div>
+                        <div class="timeline-axis">`;
+
+                    let bcCount = 0;
+                    let adCount = 0;
+                    data.forEach((item, idx) => {
+                        const isCatastrophe = item.year === 'AD 0年';
+                        const catClass = `tl-cat-${catMap[item.category] || 'tech'}`;
+                        const delay = Math.min(idx * 0.08, 2.0);
+                        const eventText = item.event.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                        if (item.year.startsWith('BC')) bcCount++;
+                        else adCount++;
+
+                        if (isCatastrophe) {
+                            html += `</div><div class="tl-catastrophe-divider"><span>// THE COLLAPSE //</span></div><div class="timeline-axis">`;
+                            html += `<div class="tl-event tl-catastrophe ${catClass}" style="animation-delay:${delay}s;">
+                                <div class="tl-node"></div>
+                                <div class="tl-card">
+                                    <div class="tl-card-scanline"></div>
+                                    <div><span class="tl-year">${item.year}</span><span class="tl-category-tag">${catLabel[item.category] || item.category}</span></div>
+                                    <div class="tl-desc">${eventText}</div>
+                                </div>
+                            </div>`;
+                        } else {
+                            html += `<div class="tl-event ${catClass}" style="animation-delay:${delay}s;">
+                                <div class="tl-node"></div>
+                                <div class="tl-connector"></div>
+                                <div class="tl-card">
+                                    <div class="tl-card-scanline"></div>
+                                    <div><span class="tl-year">${item.year}</span><span class="tl-category-tag">${catLabel[item.category] || item.category}</span></div>
+                                    <div class="tl-desc">${eventText}</div>
+                                </div>
+                            </div>`;
+                        }
+                    });
+
+                    html += `</div></div>`;
+                    break;
+
+                case 'cities':
+                    html = '<h2>🌆 城市名录</h2>';
+                    data.forEach(city => {
+                        html += `<div class="content-card"><h3>${city.name}</h3><p><strong>氛围</strong>:${city.氛围 || '未知'}</p><p><strong>街头传闻</strong>:${city.街头传闻 || '无'}</p></div>`;
+                    });
+                    break;
+
+                case 'gangs':
+                    html = '<h2>🔫 帮派图鉴</h2><div class="gangs-grid">';
+                    data.forEach((gang, index) => {
+                        const enemyList = gang.enemy.split('、').slice(0, 3);
+                        html += `
+                        <div class="gang-card" style="animation-delay: ${index * 0.08}s;">
+                            <div class="gang-corner"></div>
+                            <div class="gang-card-header">
+                                <h3 class="gang-name">${gang.name}</h3>
+                                <span class="gang-tag">TERRITORY: ${gang.territory.length > 30 ? gang.territory.substring(0, 30) + '...' : gang.territory}</span>
+                            </div>
+                            <div class="gang-card-body">
+                                <div class="gang-section">
+                                    <div class="gang-section-label">信条 // Creed</div>
+                                    <p class="gang-ideology">${gang.ideology}</p>
+                                </div>
+                                <div class="gang-section">
+                                    <div class="gang-section-label">地盘 // Territory</div>
+                                    <p class="gang-section-text">${gang.territory}</p>
+                                </div>
+                                <div class="gang-section">
+                                    <div class="gang-section-label">标配义体 // Cyberware</div>
+                                    <p class="gang-section-text">${gang.common_cyberware}</p>
+                                </div>
+                                <div class="gang-section">
+                                    <div class="gang-section-label">招募 // Recruitment</div>
+                                    <p class="gang-section-text">${gang.recruitment}</p>
+                                </div>
+                            </div>
+                            <div class="gang-card-footer">
+                                ${enemyList.map(e => `<span class="gang-enemy-tag">⚔ ${e.trim()}</span>`).join('')}
+                            </div>
+                            <div class="gang-glow"></div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                    break;
+
+                case 'cyberware':
+                    html = '<h2>🦾 义体目录</h2><table><tr><th>名称</th><th>类别</th><th>描述</th><th>副作用</th></tr>';
+                    data.forEach(item => {
+                        html += `<tr><td>${item.name}</td><td>${item.category}</td><td>${item.description}</td><td>${item.side_effect}</td></tr>`;
+                    });
+                    html += '</table>';
+                    break;
+                case 'characters':
+                    html = '<h2>👤 关键角色</h2>';
+                    data.forEach(char => {
+                        html += `<div class="content-card"><h3>${char.name}</h3>`;
+                        html += `<p><strong>身份</strong>:${char.identity || '未知'}</p>`;
+                        html += `<p><strong>当前状态</strong>:${char.status || '未知'}</p>`;
+                        html += `<p><strong>备注</strong>:${char.notes || '无'}</p>`;
+                        html += `</div>`;
+                    });
+                    break;
+
+                case 'locations':
+                    html = '<h2>📍 重要地点 · 全息坐标系统</h2><div class="locations-grid">';
+                    data.forEach((loc, index) => {
+                        const statusColors = {
+                            '活跃': '#00ff88',
+                            '封锁': '#ff3366',
+                            '废弃': '#666666',
+                            '未知': '#aa66ff',
+                            '警戒': '#ffcc00'
+                        };
+                        const color = statusColors[loc.status] || '#ffffff';
+                        html += `
+                        <div class="location-card" style="animation-delay: ${index * 0.1}s;">
+                            <div class="location-icon">
+                                <span class="icon-pulse" style="background: ${color};"></span>
+                                <span class="icon-core">${loc.name.charAt(0)}</span>
+                            </div>
+                            <div class="location-info">
+                                <h4 style="color: ${color};">${loc.name}</h4>
+                                <div class="location-status">
+                                    <span class="status-dot" style="background: ${color};"></span>
+                                    <span>${loc.status}</span>
+                                </div>
+                                ${loc.description ? `<p>${loc.description}</p>` : ''}
+                            </div>
+                            <div class="location-glow" style="box-shadow: 0 0 30px ${color}40;"></div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                    break;
+
+                case 'chapters':
+                    html = '<h2>📖 章节摘要</h2>';
+                    data.forEach(ch => {
+                        html += `<div class="content-card"><h3>第${ch.number}章</h3>`;
+                        html += `<p>${ch.summary}</p>`;
+                        html += `</div>`;
+                    });
+                    break;
+
+                default:
+                    html = `<h2>${category}</h2><p>该分类数据格式暂未定义</p>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // 全屏覆盖层管理
+        function openOverlay(url, title) {
+            const overlay = document.getElementById('fullscreenOverlay');
+            const frame = document.getElementById('overlayFrame');
+            const titleEl = document.getElementById('overlayTitle');
+            titleEl.textContent = '// ' + title;
+            frame.src = url;
+            requestAnimationFrame(() => overlay.classList.add('active'));
+        }
+
+        function closeOverlay() {
+            const overlay = document.getElementById('fullscreenOverlay');
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                document.getElementById('overlayFrame').src = '';
+            }, 500);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeOverlay();
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            const buttons = document.querySelectorAll('[data-category]');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    loadData(btn.getAttribute('data-category'));
+                });
+            });
+
+            // 全球地图按钮 - 内嵌加载 world.html
+            const mapBtn = document.getElementById('openMapBtn');
+            mapBtn.addEventListener('click', () => {
+                openOverlay('../world.html', 'GLOBAL CORPORATE TERRITORY MAP // 2087');
+            });
+
+            // 小说正篇按钮 - 内嵌加载 reader.html
+            const novelBtn = document.getElementById('novelBtn');
+            novelBtn.removeAttribute('onclick');
+            novelBtn.addEventListener('click', () => {
+                openOverlay('./reader.html', 'NEUROSYNC READER // 神经档案阅读器');
+            });
+
+            loadData('timeline'); // 默认加载
+        });
+    </script>
+</body>
+</html>

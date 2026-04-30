@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroSync · 神经档案阅读器</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00ffff;
+            --secondary: #ff3366;
+            --bg-dark: #0a0a0f;
+            --bg-panel: #0d0d15;
+            --bg-card: #12121c;
+            --text: #c8c8d4;
+            --text-dim: #666680;
+            --border: #1a1a2e;
+            --glow: rgba(0, 255, 255, 0.15);
+            --font-size: 18px;
+            --line-height: 1.9;
+            --content-width: 720px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', '思源宋体', 'Source Han Serif SC', serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: rgba(0, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 255, 0.4);
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: rgba(10, 10, 15, 0.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .top-bar.hidden {
+            transform: translateY(-100%);
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        .menu-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: var(--primary);
+        }
+
+        .title-bar {
+            font-size: 14px;
+            color: var(--primary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: monospace;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .font-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .font-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        .progress-text {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* ===== 阅读进度条 ===== */
+        .progress-bar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            z-index: 999;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #00ff88);
+            width: 0%;
+            transition: width 0.15s ease;
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        /* ===== 侧边栏目录 ===== */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1001;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 340px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            z-index: 1002;
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header h2 {
+            font-size: 16px;
+            color: var(--primary);
+            letter-spacing: 3px;
+            font-family: monospace;
+            margin-bottom: 4px;
+        }
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-family: monospace;
+        }
+
+        .chapter-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .chapter-item {
+            padding: 14px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .chapter-item:hover {
+            background: rgba(0, 255, 255, 0.05);
+            border-color: rgba(0, 255, 255, 0.1);
+        }
+        .chapter-item.active {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.3);
+        }
+
+        .chapter-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--text-dim);
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .chapter-item.active .chapter-num {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+        }
+
+        .chapter-meta {
+            flex: 1;
+            min-width: 0;
+        }
+        .chapter-meta-title {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chapter-item.active .chapter-meta-title {
+            color: var(--primary);
+        }
+        .chapter-meta-info {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-family: monospace;
+            margin-top: 2px;
+        }
+
+        .chapter-read-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            opacity: 0;
+            flex-shrink: 0;
+            transition: opacity 0.3s;
+        }
+        .chapter-read-dot.read {
+            opacity: 0.5;
+        }
+        .chapter-item.active .chapter-read-dot {
+            opacity: 1;
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        /* ===== 主阅读区域 ===== */
+        .reading-area {
+            max-width: var(--content-width);
+            margin: 0 auto;
+            padding: 100px 24px 120px;
+            min-height: 100vh;
+        }
+
+        /* ===== 章节标题区 ===== */
+        .chapter-header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .chapter-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 12px var(--primary);
+        }
+
+        .chapter-label {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--primary);
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        .chapter-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 30px 0;
+        }
+
+        /* ===== 正文内容 ===== */
+        .content-body {
+            position: relative;
+        }
+
+        .content-body p {
+            text-indent: 2em;
+            margin-bottom: 1em;
+            color: var(--text);
+            text-align: justify;
+            transition: color 0.3s;
+        }
+
+        .content-body p:hover {
+            color: #e0e0ec;
+        }
+
+        .content-body p.highlight-line {
+            color: #fff;
+            background: rgba(0, 255, 255, 0.03);
+            border-left: 2px solid rgba(0, 255, 255, 0.3);
+            padding-left: 12px;
+            margin-left: -14px;
+            text-indent: 2em;
+        }
+
+        .content-body strong,
+        .content-body b {
+            color: var(--primary);
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+        }
+
+        .content-body em,
+        .content-body i {
+            color: #ff99cc;
+            font-style: normal;
+            border-bottom: 1px dashed rgba(255, 153, 204, 0.3);
+        }
+
+        /* ===== 章节底部导航 ===== */
+        .chapter-nav {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .chapter-nav-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 16px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+            font-family: inherit;
+            max-width: 240px;
+        }
+        .chapter-nav-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+        .chapter-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .chapter-nav-btn .btn-label {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ===== 阅读统计 ===== */
+        .reading-stats {
+            text-align: center;
+            margin-top: 40px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        /* ===== 回到顶部 ===== */
+        .back-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(12, 12, 20, 0.9);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .back-top.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .back-top:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            font-family: monospace;
+            font-size: 24px;
+            color: var(--primary);
+            letter-spacing: 8px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            animation: loadPulse 2s ease-in-out infinite;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        .loading-bar-inner {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+            transition: width 0.3s;
+        }
+
+        .loading-text {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 16px;
+            letter-spacing: 2px;
+        }
+
+        @keyframes loadPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== 解码入场动画 ===== */
+        .decode-line {
+            opacity: 0;
+            transform: translateY(8px);
+            animation: fadeInLine 0.4s ease forwards;
+        }
+
+        @keyframes fadeInLine {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 侧边标注浮层 ===== */
+        .annotation-panel {
+            position: fixed;
+            top: 56px;
+            right: 0;
+            width: 300px;
+            bottom: 0;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            z-index: 900;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .annotation-panel.active {
+            transform: translateX(0);
+        }
+        .annotation-panel h3 {
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--primary);
+            letter-spacing: 3px;
+            margin-bottom: 16px;
+        }
+        .annotation-panel p {
+            font-size: 14px;
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            :root {
+                --font-size: 16px;
+                --content-width: 100%;
+            }
+            .reading-area {
+                padding: 80px 16px 100px;
+            }
+            .sidebar {
+                width: 85vw;
+            }
+            .chapter-nav {
+                flex-direction: column;
+            }
+            .chapter-nav-btn {
+                max-width: 100%;
+                width: 100%;
+            }
+            .chapter-title {
+                font-size: 22px;
+            }
+            .back-top {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        /* ===== 暗色扫描线 ===== */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9998;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 加载屏 -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">NEUROSYNC</div>
+        <div class="loading-bar">
+            <div class="loading-bar-inner" id="loadingBar"></div>
+        </div>
+        <div class="loading-text" id="loadingText">正在解密神经档案...</div>
+    </div>
+
+    <!-- 顶部栏 -->
+    <div class="top-bar" id="topBar">
+        <div class="top-bar-left">
+            <button class="menu-btn" id="menuBtn" title="目录">☰</button>
+            <span class="title-bar" id="titleBar">NEUROSYNC · 神经档案</span>
+        </div>
+        <div class="top-bar-right">
+            <button class="font-btn" id="fontDecrease" title="缩小字体">A-</button>
+            <button class="font-btn" id="fontIncrease" title="放大字体">A+</button>
+            <span class="progress-text" id="progressText">0%</span>
+        </div>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>CHAPTERS</h2>
+            <p id="chapterCount">0 chapters loaded</p>
+        </div>
+        <div class="chapter-list" id="chapterList"></div>
+    </div>
+
+    <!-- 主阅读区 -->
+    <div class="reading-area" id="readingArea">
+        <div class="chapter-header" id="chapterHeader">
+            <div class="chapter-label">CHAPTER</div>
+            <h1 class="chapter-title" id="chapterTitle">Loading...</h1>
+        </div>
+        <div class="chapter-divider"></div>
+        <div class="content-body" id="contentBody"></div>
+        <div class="chapter-nav">
+            <button class="chapter-nav-btn" id="prevBtn" disabled>
+                <span class="btn-label">PREV</span>
+                上一章
+            </button>
+            <button class="chapter-nav-btn" id="nextBtn">
+                <span class="btn-label">NEXT</span>
+                下一章
+            </button>
+        </div>
+        <div class="reading-stats" id="readingStats"></div>
+    </div>
+
+    <!-- 回到顶部 -->
+    <button class="back-top" id="backTop" title="回到顶部">↑</button>
+
+    <script src="chapters.js"></script>
+    <script>
+        (function() {
+            const chapters = CHAPTERS_DATA;
+            let currentChapter = 0;
+            let fontSize = 18;
+            let lastScrollY = 0;
+
+            const $ = id => document.getElementById(id);
+
+            function getStorage(key, def) {
+                try { const v = localStorage.getItem('ns_' + key); return v !== null ? JSON.parse(v) : def; }
+                catch { return def; }
+            }
+            function setStorage(key, val) {
+                try { localStorage.setItem('ns_' + key, JSON.stringify(val)); } catch {}
+            }
+
+            function initLoading() {
+                const bar = $('loadingBar');
+                const text = $('loadingText');
+                const msgs = ['正在解密神经档案...', '同步意识数据...', '加载章节碎片...', '解码完成'];
+                let step = 0;
+                const timer = setInterval(() => {
+                    step++;
+                    bar.style.width = (step * 25) + '%';
+                    if (step < msgs.length) text.textContent = msgs[step - 1];
+                    if (step >= 4) {
+                        clearInterval(timer);
+                        setTimeout(() => {
+                            $('loadingScreen').classList.add('fade-out');
+                            setTimeout(() => $('loadingScreen').remove(), 800);
+                        }, 300);
+                    }
+                }, 250);
+            }
+
+            function buildChapterList() {
+                const list = $('chapterList');
+                $('chapterCount').textContent = chapters.length + ' chapters loaded';
+                list.innerHTML = '';
+                chapters.forEach((ch, i) => {
+                    const wordCount = ch.content.length;
+                    const item = document.createElement('div');
+                    item.className = 'chapter-item' + (i === currentChapter ? ' active' : '');
+                    item.innerHTML = `
+                        <div class="chapter-num">${String(ch.number).padStart(2, '0')}</div>
+                        <div class="chapter-meta">
+                            <div class="chapter-meta-title">${ch.title}</div>
+                            <div class="chapter-meta-info">${(wordCount / 1000).toFixed(1)}K 字</div>
+                        </div>
+                        <div class="chapter-read-dot${getStorage('read_' + i, false) ? ' read' : ''}"></div>
+                    `;
+                    item.addEventListener('click', () => {
+                        loadChapter(i);
+                        closeSidebar();
+                    });
+                    list.appendChild(item);
+                });
+            }
+
+            function loadChapter(index) {
+                if (index < 0 || index >= chapters.length) return;
+                currentChapter = index;
+                const ch = chapters[index];
+
+                $('chapterTitle').textContent = ch.title;
+                $('chapterHeader').querySelector('.chapter-label').textContent = 'CHAPTER ' + ch.number;
+
+                const paragraphs = ch.content.split(/\n+/).filter(p => p.trim());
+                let html = '';
+                paragraphs.forEach((p, i) => {
+                    const processed = p
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\_(.*?)\_/g, '<em>$1</em>');
+                    html += `<p class="decode-line" style="animation-delay: ${Math.min(i * 0.03, 1.5)}s">${processed}</p>`;
+                });
+                $('contentBody').innerHTML = html;
+
+                $('prevBtn').disabled = index === 0;
+                $('nextBtn').disabled = index === chapters.length - 1;
+                $('prevBtn').onclick = () => { loadChapter(index - 1); window.scrollTo({top: 0}); };
+                $('nextBtn').onclick = () => { loadChapter(index + 1); window.scrollTo({top: 0}); };
+
+                setStorage('currentChapter', index);
+                setStorage('read_' + index, true);
+
+                document.querySelectorAll('.chapter-item').forEach((item, i) => {
+                    item.classList.toggle('active', i === index);
+                    const dot = item.querySelector('.chapter-read-dot');
+                    if (dot && getStorage('read_' + i, false)) dot.classList.add('read');
+                });
+
+                updateTitleBar();
+                updateStats();
+                window.scrollTo({top: 0});
+            }
+
+            function updateTitleBar() {
+                const ch = chapters[currentChapter];
+                $('titleBar').textContent = `${ch.title} · NEUROSYNC`;
+            }
+
+            function updateStats() {
+                const ch = chapters[currentChapter];
+                const totalWords = chapters.reduce((s, c) => s + c.content.length, 0);
+                $('readingStats').innerHTML = `
+                    第 ${currentChapter + 1} / ${chapters.length} 章 · 
+                    本章 ${(ch.content.length / 1000).toFixed(1)}K 字 · 
+                    全书 ${(totalWords / 10000).toFixed(1)} 万字
+                `;
+            }
+
+            function updateScrollProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? (scrollTop / docHeight * 100) : 0;
+                $('progressFill').style.width = progress + '%';
+                $('progressText').textContent = Math.round(progress) + '%';
+
+                if (scrollTop > 300) {
+                    $('backTop').classList.add('visible');
+                } else {
+                    $('backTop').classList.remove('visible');
+                }
+
+                if (scrollTop > lastScrollY && scrollTop > 120) {
+                    $('topBar').classList.add('hidden');
+                } else {
+                    $('topBar').classList.remove('hidden');
+                }
+                lastScrollY = scrollTop;
+            }
+
+            function toggleSidebar() {
+                $('sidebar').classList.toggle('active');
+                $('sidebarOverlay').classList.toggle('active');
+            }
+            function closeSidebar() {
+                $('sidebar').classList.remove('active');
+                $('sidebarOverlay').classList.remove('active');
+            }
+
+            function adjustFontSize(delta) {
+                fontSize = Math.max(14, Math.min(24, fontSize + delta));
+                document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+                setStorage('fontSize', fontSize);
+            }
+
+            function handleKeydown(e) {
+                if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                    if (currentChapter > 0) {
+                        loadChapter(currentChapter - 1);
+                        window.scrollTo({top: 0});
+                    }
+                } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                    if (currentChapter < chapters.length - 1) {
+                        loadChapter(currentChapter + 1);
+                        window.scrollTo({top: 0});
+                    }
+                } else if (e.key === 'Escape') {
+                    closeSidebar();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    if (!e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                        toggleFullscreen();
+                    }
+                }
+            }
+
+            function toggleFullscreen() {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            }
+
+            fontSize = getStorage('fontSize', 18);
+            document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+
+            const savedChapter = getStorage('currentChapter', 0);
+
+            initLoading();
+            buildChapterList();
+
+            setTimeout(() => {
+                loadChapter(savedChapter);
+            }, 1200);
+
+            window.addEventListener('scroll', updateScrollProgress, { passive: true });
+
+            $('menuBtn').addEventListener('click', toggleSidebar);
+            $('sidebarOverlay').addEventListener('click', closeSidebar);
+            $('fontIncrease').addEventListener('click', () => adjustFontSize(1));
+            $('fontDecrease').addEventListener('click', () => adjustFontSize(-1));
+            $('backTop').addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+            document.addEventListener('keydown', handleKeydown);
+
+            updateScrollProgress();
+        })();
+    </script>
+</body>
+</html>
